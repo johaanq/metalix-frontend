@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  apiUrl: '/api',
+  apiUrl: 'https://metalix-backend.vercel.app',
   appName: 'Metalix',
   version: '1.0.0',
   features: {
