@@ -67,43 +67,36 @@
             </mat-form-field>
           </div>
 
-          <!-- Role Field -->
+          <!-- Municipality Field -->
           <div class="register-form-field">
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Role</mat-label>
-              <mat-select formControlName="role">
-                @for (role of userRoles; track role) {
-                <mat-option [value]="role">
-                  {{ getRoleDisplayName(role) }}
+              <mat-label>Municipality</mat-label>
+              <mat-select formControlName="municipalityId" placeholder="Select your municipality">
+                @if (loadingMunicipalities) {
+                <mat-option disabled>
+                  <mat-spinner diameter="20"></mat-spinner>
+                  Loading municipalities...
+                </mat-option>
+                }
+                @if (!loadingMunicipalities && municipalities.length === 0) {
+                <mat-option disabled>
+                  No municipalities available
+                </mat-option>
+                }
+                @for (municipality of municipalities; track municipality.id) {
+                <mat-option [value]="municipality.id">
+                  {{ municipality.name }} - {{ municipality.region }}
                 </mat-option>
                 }
               </mat-select>
-              <mat-icon matSuffix>work</mat-icon>
-              @if (registerForm.get('role')?.touched && registerForm.get('role')?.errors) {
-              <mat-error>
-                {{ getErrorMessage('role') }}
-              </mat-error>
-              }
-            </mat-form-field>
-          </div>
-
-          <!-- Municipality ID Field (conditional) -->
-          @if (selectedRole === 'MUNICIPALITY_ADMIN') {
-          <div class="register-form-field">
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Municipality ID</mat-label>
-              <input matInput 
-                     formControlName="municipalityId"
-                     placeholder="Enter municipality ID">
               <mat-icon matSuffix>location_city</mat-icon>
               @if (registerForm.get('municipalityId')?.touched && registerForm.get('municipalityId')?.errors) {
               <mat-error>
-                {{ getErrorMessage('municipalityId') }}
+                Please select a municipality
               </mat-error>
               }
             </mat-form-field>
           </div>
-          }
 
           <!-- Password Field -->
           <div class="register-form-field">

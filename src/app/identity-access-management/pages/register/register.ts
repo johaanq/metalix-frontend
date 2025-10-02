@@ -15,6 +15,7 @@ import { AuthService, RegisterRequest } from '../../../core/services/auth.servic
 import { NotificationService } from '../../../core/services/notification.service';
 import { LoadingService } from '../../../core/services/loading.service';
 import { UserRole } from '../../../shared/models';
+import { MunicipalityService, Municipality } from '../../../municipality-management/services/municipality.service';
 
 @Component({
   selector: 'app-register',
@@ -40,13 +41,15 @@ export class RegisterComponent implements OnInit {
   isLoading = false;
   hidePassword = true;
   hideConfirmPassword = true;
-  selectedRole: UserRole = UserRole.CITIZEN;
+  municipalities: Municipality[] = [];
+  loadingMunicipalities = false;
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
     private notificationService: NotificationService,
     private loadingService: LoadingService,
+    private municipalityService: MunicipalityService,
     private router: Router
   ) {
     this.registerForm = this.fb.group({
@@ -55,8 +58,7 @@ export class RegisterComponent implements OnInit {
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', [Validators.required]],
-      role: [UserRole.CITIZEN, [Validators.required]],
-      municipalityId: ['']
+      municipalityId: ['', [Validators.required]]
     }, { validators: this.passwordMatchValidator });
   }
 
@@ -66,16 +68,22 @@ export class RegisterComponent implements OnInit {
       this.isLoading = loading;
     });
 
-    // Watch role changes to show/hide municipality field
-    this.registerForm.get('role')?.valueChanges.subscribe(role => {
-      this.selectedRole = role;
-      const municipalityControl = this.registerForm.get('municipalityId');
-      if (role === UserRole.MUNICIPALITY_ADMIN) {
-        municipalityControl?.setValidators([Validators.required]);
-      } else {
-        municipalityControl?.clearValidators();
+    // Load municipalities from backend
+    this.loadMunicipalities();
+  }
+
+  loadMunicipalities(): void {
+    this.loadingMunicipalities = true;
+    this.municipalityService.getMunicipalities().subscribe({
+      next: (municipalities) => {
+        this.municipalities = municipalities.filter(m => m.isActive);
+        this.loadingMunicipalities = false;
+      },
+      error: (error) => {
+        console.error('Error loading municipalities:', error);
+        this.notificationService.showError('Failed to load municipalities. Please try again.');
+        this.loadingMunicipalities = false;
       }
-      municipalityControl?.updateValueAndValidity();
     });
   }
 
@@ -103,8 +111,8 @@ export class RegisterComponent implements OnInit {
         lastName: registerData.lastName,
         email: registerData.email,
         password: registerData.password,
-        role: registerData.role,
-        municipalityId: registerData.municipalityId || undefined
+        role: 'CITIZEN', // Always register as CITIZEN
+        municipalityId: registerData.municipalityId
       };
       
       this.authService.register(registerRequest).subscribe({
@@ -160,22 +168,5 @@ export class RegisterComponent implements OnInit {
 
   navigateToLogin(): void {
     this.router.navigate(['/auth/login']);
-  }
-
-  get userRoles() {
-    return Object.values(UserRole);
-  }
-
-  getRoleDisplayName(role: UserRole): string {
-    switch (role) {
-      case UserRole.CITIZEN:
-        return 'Citizen';
-      case UserRole.MUNICIPALITY_ADMIN:
-        return 'Municipality Administrator';
-      case UserRole.SYSTEM_ADMIN:
-        return 'System Administrator';
-      default:
-        return role;
-    }
   }
 }

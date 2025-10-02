@@ -65,7 +65,7 @@ export class MunicipalityService {
 
   getZones(municipalityId?: string): Observable<Zone[]> {
     const url = municipalityId 
-      ? `${environment.apiUrl}${environment.endpoints.zones}?municipalityId=${municipalityId}`
+      ? `${environment.apiUrl}${environment.endpoints.zones}/municipality/${municipalityId}`
       : `${environment.apiUrl}${environment.endpoints.zones}`;
     return this.http.get<Zone[]>(url);
   }
@@ -83,7 +83,7 @@ export class MunicipalityService {
   }
 
   updateMunicipality(id: string, municipality: Partial<Municipality>): Observable<Municipality> {
-    return this.http.patch<Municipality>(`${environment.apiUrl}${environment.endpoints.municipalities}/${id}`, municipality);
+    return this.http.put<Municipality>(`${environment.apiUrl}${environment.endpoints.municipalities}/${id}`, municipality);
   }
 
   createZone(zone: Partial<Zone>): Observable<Zone> {
@@ -91,7 +91,7 @@ export class MunicipalityService {
   }
 
   updateZone(id: string, zone: Partial<Zone>): Observable<Zone> {
-    return this.http.patch<Zone>(`${environment.apiUrl}${environment.endpoints.zones}/${id}`, zone);
+    return this.http.put<Zone>(`${environment.apiUrl}${environment.endpoints.zones}/${id}`, zone);
   }
 
   deleteZone(id: string): Observable<void> {

@@ -55,19 +55,14 @@ export class RewardService {
   }
 
   redeemReward(userId: string, rewardId: string): Observable<RewardTransaction> {
-    return this.http.post<RewardTransaction>(`${environment.apiUrl}${environment.endpoints.rewardTransactions}`, {
-      userId,
-      rewardId,
-      transactionType: 'REDEEMED',
-      points: 0, // Will be calculated by backend
-      description: 'Reward redemption',
-      timestamp: new Date().toISOString(),
-      status: 'PENDING'
+    return this.http.post<RewardTransaction>(`${environment.apiUrl}${environment.endpoints.rewardTransactions}/redeem`, {
+      userId: parseInt(userId),
+      rewardId: parseInt(rewardId)
     });
   }
 
   getUserTransactions(userId: string): Observable<RewardTransaction[]> {
-    return this.http.get<RewardTransaction[]>(`${environment.apiUrl}${environment.endpoints.rewardTransactions}?userId=${userId}`);
+    return this.http.get<RewardTransaction[]>(`${environment.apiUrl}${environment.endpoints.rewardTransactions}/user/${userId}`);
   }
 
   getUserPoints(userId: string): Observable<UserPoints> {
@@ -79,7 +74,7 @@ export class RewardService {
   }
 
   updateReward(id: string, reward: Partial<Reward>): Observable<Reward> {
-    return this.http.patch<Reward>(`${environment.apiUrl}${environment.endpoints.rewards}/${id}`, reward);
+    return this.http.put<Reward>(`${environment.apiUrl}${environment.endpoints.rewards}/${id}`, reward);
   }
 
   deleteReward(id: string): Observable<void> {

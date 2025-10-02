@@ -61,7 +61,7 @@ export class WasteCollectionService {
 
   getWasteCollections(userId?: string): Observable<WasteCollection[]> {
     const url = userId 
-      ? `${environment.apiUrl}${environment.endpoints.wasteCollections}?userId=${userId}`
+      ? `${environment.apiUrl}${environment.endpoints.wasteCollections}/user/${userId}`
       : `${environment.apiUrl}${environment.endpoints.wasteCollections}`;
     return this.http.get<WasteCollection[]>(url);
   }
@@ -72,12 +72,12 @@ export class WasteCollectionService {
 
   getSensorData(collectorId?: string): Observable<SensorData[]> {
     const url = collectorId 
-      ? `${environment.apiUrl}${environment.endpoints.sensorData}?collectorId=${collectorId}`
+      ? `${environment.apiUrl}${environment.endpoints.sensorData}/collector/${collectorId}`
       : `${environment.apiUrl}${environment.endpoints.sensorData}`;
     return this.http.get<SensorData[]>(url);
   }
 
   updateCollectorStatus(id: string, status: string): Observable<WasteCollector> {
-    return this.http.patch<WasteCollector>(`${environment.apiUrl}${environment.endpoints.wasteCollectors}/${id}`, { status });
+    return this.http.put<WasteCollector>(`${environment.apiUrl}${environment.endpoints.wasteCollectors}/${id}`, { status });
   }
 }
