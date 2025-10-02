@@ -1,0 +1,87 @@
+<div class="login-container">
+  <div class="login-card">
+    <mat-card class="auth-card">
+      <!-- Header with Logo -->
+      <div class="logo-container">
+        <mat-icon class="logo-icon">recycling</mat-icon>
+        <h1 class="app-title">Metalix</h1>
+      </div>
+      
+      <mat-card-content>
+        <div class="form-header">
+          <h2 class="card-title">Welcome Back</h2>
+          <p class="card-subtitle">Sign in to your account to continue</p>
+        </div>
+        
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+          <div class="login-form-field">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Email</mat-label>
+              <input matInput 
+                     type="email" 
+                     formControlName="email"
+                     placeholder="Enter your email"
+                     autocomplete="email">
+              <mat-icon matSuffix>email</mat-icon>
+              @if (loginForm.get('email')?.touched && loginForm.get('email')?.errors) {
+              <mat-error>
+                {{ getErrorMessage('email') }}
+              </mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <div class="login-form-field">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Password</mat-label>
+              <input matInput 
+                     [type]="hidePassword ? 'password' : 'text'"
+                     formControlName="password"
+                     placeholder="Enter your password"
+                     autocomplete="current-password">
+              <button mat-icon-button 
+                      matSuffix 
+                      type="button"
+                      (click)="togglePasswordVisibility()"
+                      [attr.aria-label]="'Hide password'"
+                      [attr.aria-pressed]="hidePassword">
+                <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+              @if (loginForm.get('password')?.touched && loginForm.get('password')?.errors) {
+              <mat-error>
+                {{ getErrorMessage('password') }}
+              </mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <button mat-raised-button 
+                  type="submit"
+                  class="login-button full-width"
+                  [disabled]="isLoading || loginForm.invalid"
+                  [class.loading]="isLoading">
+            @if (isLoading) {
+            <mat-spinner diameter="20" class="button-spinner"></mat-spinner>
+            }
+            @if (!isLoading) {
+            <span>Sign In</span>
+            }
+            @if (isLoading) {
+            <span>Signing In...</span>
+            }
+          </button>
+        </form>
+
+        <div class="register-link">
+          <p>Don't have an account? </p>
+          <button mat-button 
+                  (click)="navigateToRegister()"
+                  [disabled]="isLoading"
+                  type="button">
+            Create Account
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

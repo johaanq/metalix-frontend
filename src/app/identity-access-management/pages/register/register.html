@@ -1,0 +1,189 @@
+<div class="register-container">
+  <div class="register-card">
+    <mat-card class="auth-card">
+      <!-- Header with Logo -->
+      <div class="logo-container">
+        <mat-icon class="logo-icon">recycling</mat-icon>
+        <h1 class="app-title">Metalix</h1>
+      </div>
+      
+      <mat-card-content>
+        <div class="form-header">
+          <h2 class="card-title">Create Account</h2>
+          <p class="card-subtitle">Join the recycling revolution</p>
+        </div>
+        
+        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
+          <!-- Name Fields Row -->
+          <div class="form-row">
+            <div class="register-form-field half-width">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>First Name</mat-label>
+                <input matInput 
+                       formControlName="firstName"
+                       placeholder="Enter your first name"
+                       autocomplete="given-name">
+                <mat-icon matSuffix>person</mat-icon>
+                @if (registerForm.get('firstName')?.touched && registerForm.get('firstName')?.errors) {
+                <mat-error>
+                  {{ getErrorMessage('firstName') }}
+                </mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <div class="register-form-field half-width">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Last Name</mat-label>
+                <input matInput 
+                       formControlName="lastName"
+                       placeholder="Enter your last name"
+                       autocomplete="family-name">
+                <mat-icon matSuffix>person</mat-icon>
+                @if (registerForm.get('lastName')?.touched && registerForm.get('lastName')?.errors) {
+                <mat-error>
+                  {{ getErrorMessage('lastName') }}
+                </mat-error>
+                }
+              </mat-form-field>
+            </div>
+          </div>
+
+          <!-- Email Field -->
+          <div class="register-form-field">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Email</mat-label>
+              <input matInput 
+                     type="email" 
+                     formControlName="email"
+                     placeholder="Enter your email"
+                     autocomplete="email">
+              <mat-icon matSuffix>email</mat-icon>
+              @if (registerForm.get('email')?.touched && registerForm.get('email')?.errors) {
+              <mat-error>
+                {{ getErrorMessage('email') }}
+              </mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <!-- Role Field -->
+          <div class="register-form-field">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Role</mat-label>
+              <mat-select formControlName="role">
+                @for (role of userRoles; track role) {
+                <mat-option [value]="role">
+                  {{ getRoleDisplayName(role) }}
+                </mat-option>
+                }
+              </mat-select>
+              <mat-icon matSuffix>work</mat-icon>
+              @if (registerForm.get('role')?.touched && registerForm.get('role')?.errors) {
+              <mat-error>
+                {{ getErrorMessage('role') }}
+              </mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <!-- Municipality ID Field (conditional) -->
+          @if (selectedRole === 'MUNICIPALITY_ADMIN') {
+          <div class="register-form-field">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Municipality ID</mat-label>
+              <input matInput 
+                     formControlName="municipalityId"
+                     placeholder="Enter municipality ID">
+              <mat-icon matSuffix>location_city</mat-icon>
+              @if (registerForm.get('municipalityId')?.touched && registerForm.get('municipalityId')?.errors) {
+              <mat-error>
+                {{ getErrorMessage('municipalityId') }}
+              </mat-error>
+              }
+            </mat-form-field>
+          </div>
+          }
+
+          <!-- Password Field -->
+          <div class="register-form-field">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Password</mat-label>
+              <input matInput 
+                     [type]="hidePassword ? 'password' : 'text'"
+                     formControlName="password"
+                     placeholder="Create a password"
+                     autocomplete="new-password">
+              <button mat-icon-button 
+                      matSuffix 
+                      type="button"
+                      (click)="togglePasswordVisibility()"
+                      [attr.aria-label]="'Hide password'"
+                      [attr.aria-pressed]="hidePassword">
+                <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+              @if (registerForm.get('password')?.touched && registerForm.get('password')?.errors) {
+              <mat-error>
+                {{ getErrorMessage('password') }}
+              </mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <!-- Confirm Password Field -->
+          <div class="register-form-field">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Confirm Password</mat-label>
+              <input matInput 
+                     [type]="hideConfirmPassword ? 'password' : 'text'"
+                     formControlName="confirmPassword"
+                     placeholder="Confirm your password"
+                     autocomplete="new-password">
+              <button mat-icon-button 
+                      matSuffix 
+                      type="button"
+                      (click)="toggleConfirmPasswordVisibility()"
+                      [attr.aria-label]="'Hide password'"
+                      [attr.aria-pressed]="hideConfirmPassword">
+                <mat-icon>{{ hideConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+              @if (registerForm.get('confirmPassword')?.touched && registerForm.get('confirmPassword')?.errors) {
+              <mat-error>
+                {{ getErrorMessage('confirmPassword') }}
+              </mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <!-- Register Button -->
+          <button mat-raised-button 
+                  type="submit"
+                  class="register-button full-width"
+                  [disabled]="isLoading || registerForm.invalid"
+                  [class.loading]="isLoading">
+            @if (isLoading) {
+            <mat-spinner diameter="20" class="button-spinner"></mat-spinner>
+            }
+            @if (!isLoading) {
+            <span>Create Account</span>
+            }
+            @if (isLoading) {
+            <span>Creating Account...</span>
+            }
+          </button>
+        </form>
+
+        <!-- Footer -->
+        <div class="login-link">
+          <p>Already have an account? </p>
+          <button mat-button 
+                  (click)="navigateToLogin()"
+                  [disabled]="isLoading"
+                  type="button">
+            Sign In
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

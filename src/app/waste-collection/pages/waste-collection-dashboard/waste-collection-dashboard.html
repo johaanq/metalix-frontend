@@ -1,0 +1,180 @@
+<mat-sidenav-container class="dashboard-container">
+  <!-- Sidebar Navigation -->
+  <mat-sidenav #sidenav 
+               [opened]="isSidenavOpen" 
+               mode="side" 
+               class="dashboard-sidenav">
+    
+    <app-sidebar [currentUser]="currentUser"></app-sidebar>
+  </mat-sidenav>
+
+  <!-- Main Content -->
+  <mat-sidenav-content class="dashboard-content">
+    <!-- Top Toolbar -->
+    <mat-toolbar class="dashboard-toolbar">
+      <button mat-icon-button (click)="toggleSidenav()">
+        <mat-icon>menu</mat-icon>
+      </button>
+      
+      <span class="toolbar-title">Waste Collection</span>
+      
+      <span class="toolbar-spacer"></span>
+      
+      <div class="toolbar-actions">
+        <span class="welcome-text">Welcome, {{ currentUser?.firstName }}!</span>
+      </div>
+    </mat-toolbar>
+
+    <!-- Dashboard Content -->
+    <div class="main-content">
+      <!-- Stats Cards -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-header">
+            <div class="stat-icon primary">
+              <mat-icon>recycling</mat-icon>
+            </div>
+            <div class="stat-change positive">+8%</div>
+          </div>
+          <h3 class="stat-value">{{ stats.totalWasteCollected }} kg</h3>
+          <p class="stat-label">Total Waste Collected</p>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-header">
+            <div class="stat-icon accent">
+              <mat-icon>stars</mat-icon>
+            </div>
+            <div class="stat-change positive">+12%</div>
+          </div>
+          <h3 class="stat-value">{{ stats.totalPointsEarned }}</h3>
+          <p class="stat-label">Points Earned</p>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-header">
+            <div class="stat-icon primary">
+              <mat-icon>history</mat-icon>
+            </div>
+            <div class="stat-change positive">+3</div>
+          </div>
+          <h3 class="stat-value">{{ stats.collectionSessions }}</h3>
+          <p class="stat-label">Collection Sessions</p>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-header">
+            <div class="stat-icon accent">
+              <mat-icon>eco</mat-icon>
+            </div>
+            <div class="stat-change positive">+15%</div>
+          </div>
+          <h3 class="stat-value">{{ stats.environmentalImpact }} kg</h3>
+          <p class="stat-label">CO₂ Saved</p>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="quick-actions">
+        <h3>Quick Actions</h3>
+        <div class="actions-grid">
+          <button 
+            mat-raised-button 
+            color="primary" 
+            class="action-button"
+            (click)="startCollection()"
+            [disabled]="isLoading">
+            <mat-icon *ngIf="!isLoading">add</mat-icon>
+            <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
+            <span>{{ isLoading ? 'Processing...' : 'Start Collection' }}</span>
+          </button>
+          
+          <button 
+            mat-stroked-button 
+            class="action-button"
+            routerLink="/rewards">
+            <mat-icon>card_giftcard</mat-icon>
+            <span>View Rewards</span>
+          </button>
+          
+          <button 
+            mat-stroked-button 
+            class="action-button"
+            routerLink="/user-identification">
+            <mat-icon>badge</mat-icon>
+            <span>Update Profile</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Collection Points -->
+      <div class="collection-points">
+        <h3>Available Collection Points</h3>
+        <div class="points-grid">
+          <mat-card 
+            *ngFor="let point of collectionPoints" 
+            class="point-card"
+            [class.closed]="point.status === 'Closed'">
+            <mat-card-header>
+              <mat-card-title>{{ point.name }}</mat-card-title>
+              <mat-card-subtitle>{{ point.address }}</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="point-info">
+                <div class="info-item">
+                  <mat-icon>schedule</mat-icon>
+                  <span>{{ point.hours }}</span>
+                </div>
+                <div class="info-item">
+                  <mat-icon>place</mat-icon>
+                  <span>{{ point.distance }}</span>
+                </div>
+                <div class="info-item">
+                  <mat-icon>circle</mat-icon>
+                  <span [class]="getStatusColor(point.status)">{{ point.status }}</span>
+                </div>
+              </div>
+            </mat-card-content>
+            <mat-card-actions>
+              <button 
+                mat-button 
+                color="primary"
+                [disabled]="point.status === 'Closed'"
+                (click)="getDirections(point)">
+                <mat-icon>directions</mat-icon>
+                Get Directions
+              </button>
+            </mat-card-actions>
+          </mat-card>
+        </div>
+      </div>
+
+      <!-- Collection History -->
+      <div class="collection-history">
+        <h3>Recent Collections</h3>
+        <div class="history-list">
+          <div 
+            *ngFor="let collection of collectionHistory" 
+            class="history-item">
+            <div class="history-icon">
+              <mat-icon>recycling</mat-icon>
+            </div>
+            <div class="history-content">
+              <h4 class="history-title">{{ collection.wasteType }}</h4>
+              <p class="history-details">
+                {{ collection.weight }} kg • {{ collection.points }} points • {{ collection.location }}
+              </p>
+              <p class="history-time">{{ collection.date }}</p>
+            </div>
+            <div class="history-points">
+              <mat-chip color="primary">
+                <mat-icon matChipAvatar>stars</mat-icon>
+                {{ collection.points }}
+              </mat-chip>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

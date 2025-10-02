@@ -1,0 +1,58 @@
+<!-- Sidebar Header -->
+<div class="sidebar-header">
+  <div class="sidebar-logo">
+    <mat-icon>recycling</mat-icon>
+    <h1 class="sidebar-title">Metalix</h1>
+  </div>
+</div>
+
+<!-- Navigation Menu -->
+<div class="sidebar-nav">
+  <a class="nav-item" routerLink="/dashboard" routerLinkActive="active">
+    <mat-icon>dashboard</mat-icon>
+    <span>Dashboard</span>
+  </a>
+  
+  <!-- Citizen-only options -->
+  <ng-container *ngIf="isCitizen()">
+    <a class="nav-item" routerLink="/waste-collection" routerLinkActive="active">
+      <mat-icon>recycling</mat-icon>
+      <span>Waste Collection</span>
+    </a>
+    
+    <a class="nav-item" routerLink="/rewards" routerLinkActive="active">
+      <mat-icon>card_giftcard</mat-icon>
+      <span>Rewards</span>
+    </a>
+  </ng-container>
+  
+  <!-- Admin-only options -->
+  <ng-container *ngIf="isAdmin()">
+    <a class="nav-item" routerLink="/municipality" routerLinkActive="active">
+      <mat-icon>location_city</mat-icon>
+      <span>Municipality</span>
+    </a>
+    
+    <a class="nav-item" routerLink="/monitoring" routerLinkActive="active">
+      <mat-icon>analytics</mat-icon>
+      <span>Monitoring</span>
+    </a>
+  </ng-container>
+</div>
+
+<!-- User Info Section -->
+<div class="user-info">
+  <div class="user-profile-link" (click)="navigateToProfile()">
+    <div class="user-avatar">
+      <mat-icon>account_circle</mat-icon>
+    </div>
+    <div class="user-details">
+      <h4>{{ getUserDisplayName() }}</h4>
+      <p>{{ getUserRoleDisplay() }}</p>
+    </div>
+  </div>
+  <button mat-button class="logout-button" (click)="logout()">
+    <mat-icon>logout</mat-icon>
+    Logout
+  </button>
+</div>

@@ -1,0 +1,128 @@
+@use '@angular/material' as mat;
+
+// Include theming for Angular Material with `mat.theme()`.
+// This Sass mixin will define CSS variables that are used for styling Angular Material
+// components according to the Material 3 design spec.
+html {
+  @include mat.theme((
+    color: (
+      primary: mat.$azure-palette,
+      tertiary: mat.$blue-palette,
+    ),
+    typography: Roboto,
+    density: 0,
+  ));
+}
+
+body {
+  // Default the application to a light color theme. This can be changed to
+  // `dark` to enable the dark color theme, or to `light dark` to defer to the
+  // user's system settings.
+  color-scheme: light;
+
+  // Set a default background, font and text colors for the application using
+  // Angular Material's system-level CSS variables. Learn more about these
+  // variables at https://material.angular.dev/guide/system-variables
+  background-color: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+
+  // Reset the user agent margin.
+  margin: 0;
+}
+
+// Ultra-modern Next.js-style CSS variables
+:root {
+  // Primary colors (Indigo palette - Next.js style)
+  --metalix-primary: #6366f1;
+  --metalix-primary-light: #818cf8;
+  --metalix-primary-dark: #4f46e5;
+  
+  // Accent colors (Cyan palette - Modern accent)
+  --metalix-accent: #06b6d4;
+  --metalix-accent-light: #22d3ee;
+  --metalix-accent-dark: #0891b2;
+  
+  // Neutral colors (Next.js style)
+  --metalix-white: #ffffff;
+  --metalix-light-gray: #fafafa;
+  --metalix-gray: #6b7280;
+  --metalix-dark-gray: #111827;
+  --metalix-border: #e5e7eb;
+  --metalix-shadow: rgba(0, 0, 0, 0.05);
+  --metalix-shadow-hover: rgba(0, 0, 0, 0.1);
+  
+  // Modern spacing (Next.js system)
+  --metalix-space-xs: 4px;
+  --metalix-space-sm: 8px;
+  --metalix-space-md: 16px;
+  --metalix-space-lg: 24px;
+  --metalix-space-xl: 32px;
+  --metalix-space-2xl: 48px;
+  
+  // Modern border radius (Next.js style)
+  --metalix-radius-sm: 6px;
+  --metalix-radius-md: 8px;
+  --metalix-radius-lg: 12px;
+  --metalix-radius-xl: 16px;
+  
+  // Next.js-style gradients
+  --metalix-gradient-primary: linear-gradient(135deg, #6366f1 0%, #818cf8 100%);
+  --metalix-gradient-accent: linear-gradient(135deg, #06b6d4 0%, #22d3ee 100%);
+}
+
+// Ultra-modern Next.js-style global styles
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--metalix-white);
+  color: var(--metalix-dark-gray);
+  line-height: 1.5;
+  font-size: 14px;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+// Next.js-style scrollbar
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--metalix-border);
+  border-radius: var(--metalix-radius-sm);
+  border: 2px solid var(--metalix-white);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--metalix-gray);
+}
+
+// Next.js-style focus
+*:focus {
+  outline: 2px solid var(--metalix-primary);
+  outline-offset: 2px;
+}
+
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+// Next.js-style selection
+::selection {
+  background-color: var(--metalix-primary);
+  color: var(--metalix-white);
+}
+
+// Next.js-style smooth transitions
+* {
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}

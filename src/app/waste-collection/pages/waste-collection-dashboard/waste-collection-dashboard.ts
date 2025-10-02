@@ -1,0 +1,259 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatListModule } from '@angular/material/list';
+import { MatGridListModule } from '@angular/material/grid-list';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatBadgeModule } from '@angular/material/badge';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { AuthService } from '../../../core/services/auth.service';
+import { User, UserRole } from '../../../shared/models';
+import { SidebarComponent } from '../../../shared/components/sidebar/sidebar';
+import { WasteCollectionService, WasteCollector, WasteCollection } from '../../services/waste-collection.service';
+
+@Component({
+  selector: 'app-waste-collection-dashboard',
+  standalone: true,
+  imports: [
+    CommonModule,
+    RouterModule,
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+    MatToolbarModule,
+    MatSidenavModule,
+    MatListModule,
+    MatGridListModule,
+    MatChipsModule,
+    MatBadgeModule,
+    MatDividerModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatProgressSpinnerModule,
+    MatDialogModule,
+    MatSnackBarModule,
+    SidebarComponent
+  ],
+  templateUrl: './waste-collection-dashboard.html',
+  styleUrl: './waste-collection-dashboard.css'
+})
+export class WasteCollectionDashboard implements OnInit {
+  currentUser: User | null = null;
+  isSidenavOpen = true;
+  isLoading = false;
+
+  // Waste collection stats
+  stats = {
+    totalWasteCollected: 0,
+    totalPointsEarned: 0,
+    collectionSessions: 0,
+    environmentalImpact: 0
+  };
+
+  // Collection history
+  collectionHistory: any[] = [];
+
+  // Available collection points
+  collectionPoints: any[] = [];
+
+  constructor(
+    private authService: AuthService,
+    private snackBar: MatSnackBar,
+    private wasteCollectionService: WasteCollectionService
+  ) {}
+
+  ngOnInit(): void {
+    this.currentUser = this.authService.getCurrentUser();
+    this.loadCollectionPoints();
+    this.loadCollectionHistory();
+    this.loadStats();
+  }
+
+  private loadCollectionPoints(): void {
+    this.wasteCollectionService.getWasteCollectors().subscribe({
+      next: (collectors: WasteCollector[]) => {
+        this.collectionPoints = collectors.map(c => ({
+          id: c.id,
+          name: c.name,
+          address: c.location.address,
+          status: c.status === 'ACTIVE' ? 'Open' : 'Closed',
+          hours: '8:00 AM - 6:00 PM',
+          distance: this.calculateDistance(c.location.latitude, c.location.longitude),
+          capacity: c.capacity,
+          currentWeight: c.currentWeight
+        }));
+      },
+      error: (error) => {
+        console.error('Error loading collection points:', error);
+        this.snackBar.open('Error loading collection points', 'Close', { duration: 3000 });
+      }
+    });
+  }
+
+  private loadCollectionHistory(): void {
+    if (!this.currentUser) return;
+    
+    this.wasteCollectionService.getWasteCollections(this.currentUser.id).subscribe({
+      next: (collections: WasteCollection[]) => {
+        this.collectionHistory = collections.map(c => ({
+          id: c.id,
+          date: new Date(c.timestamp).toISOString().split('T')[0],
+          wasteType: this.formatMaterialType(c.materialType),
+          weight: c.weight,
+          points: c.pointsEarned,
+          location: 'Collection Point' // We'll need to join with collectors if needed
+        })).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      },
+      error: (error) => {
+        console.error('Error loading collection history:', error);
+      }
+    });
+  }
+
+  private loadStats(): void {
+    if (!this.currentUser) return;
+    
+    this.wasteCollectionService.getWasteCollections(this.currentUser.id).subscribe({
+      next: (collections: WasteCollection[]) => {
+        const totalWeight = collections.reduce((sum, c) => sum + c.weight, 0);
+        const totalPoints = collections.reduce((sum, c) => sum + c.pointsEarned, 0);
+        
+        this.stats = {
+          totalWasteCollected: Math.round(totalWeight * 10) / 10,
+          totalPointsEarned: totalPoints,
+          collectionSessions: collections.length,
+          environmentalImpact: Math.round(totalWeight * 0.25 * 10) / 10 // Approximate CO2 saved
+        };
+      },
+      error: (error) => {
+        console.error('Error loading stats:', error);
+      }
+    });
+  }
+
+  private calculateDistance(lat: number, lon: number): string {
+    // Simple approximation - in a real app, use geolocation
+    const distance = Math.random() * 3 + 0.5;
+    return `${distance.toFixed(1)} km`;
+  }
+
+  private formatMaterialType(type: string): string {
+    const types: any = {
+      'METAL': 'Metal',
+      'PLASTIC': 'Plastic',
+      'PAPER': 'Paper',
+      'GLASS': 'Glass'
+    };
+    return types[type] || type;
+  }
+
+  toggleSidenav(): void {
+    this.isSidenavOpen = !this.isSidenavOpen;
+  }
+
+  startCollection(): void {
+    if (!this.currentUser || this.collectionPoints.length === 0) {
+      this.snackBar.open('Unable to start collection', 'Close', { duration: 3000 });
+      return;
+    }
+
+    this.isLoading = true;
+    
+    // Create new collection
+    const weight = Math.round((Math.random() * 5 + 1) * 10) / 10;
+    const pointsEarned = Math.floor(weight * 20); // 20 points per kg
+    
+    const newCollection: Partial<WasteCollection> = {
+      userId: this.currentUser.id,
+      collectorId: this.collectionPoints[0].id,
+      weight: weight,
+      materialType: 'METAL',
+      pointsEarned: pointsEarned,
+      timestamp: new Date().toISOString(),
+      status: 'COMPLETED',
+      rfidCard: this.currentUser.rfidCard || 'RFID001'
+    };
+
+    this.wasteCollectionService.createWasteCollection(newCollection).subscribe({
+      next: (collection) => {
+        this.isLoading = false;
+        
+        // Reload data
+        this.loadCollectionHistory();
+        this.loadStats();
+        
+        // Update user's points in localStorage
+        if (this.currentUser) {
+          this.currentUser.totalPoints = (this.currentUser.totalPoints || 0) + pointsEarned;
+          localStorage.setItem('current_user', JSON.stringify(this.currentUser));
+          this.authService['currentUserSubject'].next(this.currentUser);
+        }
+        
+        // Show success notification
+        this.snackBar.open(
+          `✅ Collection successful! You earned ${pointsEarned} points for ${weight}kg of Metal`,
+          'Close',
+          {
+            duration: 5000,
+            horizontalPosition: 'center',
+            verticalPosition: 'top',
+            panelClass: ['success-snackbar']
+          }
+        );
+      },
+      error: (error) => {
+        this.isLoading = false;
+        console.error('Error creating collection:', error);
+        this.snackBar.open('Error creating collection', 'Close', { duration: 3000 });
+      }
+    });
+  }
+
+  getStatusColor(status: string): string {
+    switch (status) {
+      case 'Open':
+        return 'primary';
+      case 'Closed':
+        return 'warn';
+      default:
+        return 'accent';
+    }
+  }
+
+  getDirections(point: any): void {
+    // Open Google Maps with the address
+    const address = encodeURIComponent(point.address);
+    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${address}`;
+    window.open(mapsUrl, '_blank');
+    
+    this.snackBar.open(`Opening directions to ${point.name}`, 'Close', {
+      duration: 3000,
+      horizontalPosition: 'center',
+      verticalPosition: 'bottom'
+    });
+  }
+
+  viewCollectionDetails(collection: any): void {
+    this.snackBar.open(
+      `Collection #${collection.id}: ${collection.wasteType} - ${collection.weight}kg at ${collection.location}`,
+      'Close',
+      {
+        duration: 5000,
+        horizontalPosition: 'center',
+        verticalPosition: 'bottom'
+      }
+    );
+  }
+}

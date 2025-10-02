@@ -1,0 +1,198 @@
+<mat-sidenav-container class="dashboard-container">
+  <!-- Sidebar Navigation -->
+  <mat-sidenav #sidenav 
+               [opened]="isSidenavOpen" 
+               mode="side" 
+               class="dashboard-sidenav">
+    
+    <app-sidebar [currentUser]="currentUser"></app-sidebar>
+  </mat-sidenav>
+
+  <!-- Main Content -->
+  <mat-sidenav-content class="dashboard-content">
+    <!-- Top Toolbar -->
+    <mat-toolbar class="dashboard-toolbar">
+      <button mat-icon-button (click)="toggleSidenav()">
+        <mat-icon>menu</mat-icon>
+      </button>
+      
+      <span class="toolbar-title">Rewards</span>
+      
+      <span class="toolbar-spacer"></span>
+      
+      <div class="toolbar-actions">
+        <span class="welcome-text">Welcome, {{ currentUser?.firstName }}!</span>
+      </div>
+    </mat-toolbar>
+
+    <!-- Dashboard Content -->
+    <div class="main-content">
+      <!-- Points Overview -->
+      <div class="points-overview">
+        <div class="points-header">
+          <div class="points-icon">
+            <mat-icon>stars</mat-icon>
+          </div>
+          <div class="points-info">
+            <h2>{{ stats.totalPoints }} Points</h2>
+            <p>Available: {{ stats.availablePoints }} points</p>
+          </div>
+          <div class="points-actions">
+            <button 
+              mat-raised-button 
+              color="primary"
+              routerLink="/waste-collection">
+              <mat-icon>recycling</mat-icon>
+              Earn More Points
+            </button>
+          </div>
+        </div>
+
+        <!-- Points Stats -->
+        <div class="points-stats">
+          <div class="stat-item">
+            <div class="stat-icon primary">
+              <mat-icon>stars</mat-icon>
+            </div>
+            <div class="stat-content">
+              <h3>{{ stats.totalPoints }}</h3>
+              <p>Total Points</p>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon accent">
+              <mat-icon>account_balance_wallet</mat-icon>
+            </div>
+            <div class="stat-content">
+              <h3>{{ stats.availablePoints }}</h3>
+              <p>Available Points</p>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon primary">
+              <mat-icon>card_giftcard</mat-icon>
+            </div>
+            <div class="stat-content">
+              <h3>{{ stats.redeemedPoints }}</h3>
+              <p>Redeemed Points</p>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon accent">
+              <mat-icon>emoji_events</mat-icon>
+            </div>
+            <div class="stat-content">
+              <h3>{{ stats.rewardsEarned }}</h3>
+              <p>Rewards Earned</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rewards Content Tabs -->
+      <mat-tab-group class="rewards-tabs">
+        <!-- Available Rewards Tab -->
+        <mat-tab label="Available Rewards">
+          <div class="tab-content">
+            <div class="rewards-grid">
+              <mat-card 
+                *ngFor="let reward of availableRewards" 
+                class="reward-card"
+                [class.unavailable]="!reward.available">
+                <mat-card-header>
+                  <div mat-card-avatar class="reward-avatar">
+                    <mat-icon>{{ reward.icon }}</mat-icon>
+                  </div>
+                  <mat-card-title>{{ reward.name }}</mat-card-title>
+                  <mat-card-subtitle>{{ reward.category }}</mat-card-subtitle>
+                </mat-card-header>
+                
+                <mat-card-content>
+                  <p>{{ reward.description }}</p>
+                  <div class="reward-points">
+                    <mat-chip color="primary">
+                      <mat-icon matChipAvatar>stars</mat-icon>
+                      {{ reward.pointsRequired }} points
+                    </mat-chip>
+                  </div>
+                </mat-card-content>
+                
+                <mat-card-actions>
+                  <button 
+                    mat-raised-button 
+                    color="primary"
+                    [disabled]="!canRedeemReward(reward) || isLoading"
+                    (click)="redeemReward(reward)">
+                    <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
+                    <mat-icon *ngIf="!isLoading">card_giftcard</mat-icon>
+                    {{ isLoading ? 'Processing...' : 'Redeem Reward' }}
+                  </button>
+                  <button 
+                    mat-button 
+                    color="accent"
+                    (click)="viewRewardDetails(reward)">
+                    <mat-icon>info</mat-icon>
+                    Details
+                  </button>
+                </mat-card-actions>
+              </mat-card>
+            </div>
+          </div>
+        </mat-tab>
+
+        <!-- Redeemed Rewards Tab -->
+        <mat-tab label="My Rewards">
+          <div class="tab-content">
+            <div class="redeemed-list">
+              <div 
+                *ngFor="let reward of redeemedRewards" 
+                class="redeemed-item">
+                <div class="redeemed-icon">
+                  <mat-icon>{{ reward.icon }}</mat-icon>
+                </div>
+                <div class="redeemed-content">
+                  <h4>{{ reward.name }}</h4>
+                  <p>{{ reward.pointsUsed }} points • {{ reward.redeemedDate }}</p>
+                </div>
+                <div class="redeemed-status">
+                  <mat-chip 
+                    [color]="getStatusColor(reward.status)">
+                    {{ reward.status }}
+                  </mat-chip>
+                </div>
+              </div>
+            </div>
+          </div>
+        </mat-tab>
+
+        <!-- Points History Tab -->
+        <mat-tab label="Points History">
+          <div class="tab-content">
+            <div class="history-list">
+              <div 
+                *ngFor="let entry of pointsHistory" 
+                class="history-item">
+                <div class="history-icon">
+                  <mat-icon [color]="getPointsColor(entry.points)">
+                    {{ getPointsIcon(entry.type) }}
+                  </mat-icon>
+                </div>
+                <div class="history-content">
+                  <h4>{{ entry.description }}</h4>
+                  <p>{{ entry.date }}</p>
+                </div>
+                <div class="history-points">
+                  <mat-chip 
+                    [color]="getPointsColor(entry.points)">
+                    <mat-icon matChipAvatar>stars</mat-icon>
+                    {{ entry.points > 0 ? '+' : '' }}{{ entry.points }}
+                  </mat-chip>
+                </div>
+              </div>
+            </div>
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

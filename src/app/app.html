@@ -1,0 +1,10 @@
+<div class="app-container">
+  <!-- Global Loading Spinner -->
+  <div class="loading-overlay" *ngIf="isLoading$ | async">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading...</p>
+  </div>
+
+  <!-- Main App Content -->
+  <router-outlet></router-outlet>
+  </div>
