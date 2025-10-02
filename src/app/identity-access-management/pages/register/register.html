@@ -67,6 +67,76 @@
             </mat-form-field>
           </div>
 
+          <!-- Phone Field -->
+          <div class="register-form-field">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Phone Number</mat-label>
+              <input matInput 
+                     type="tel" 
+                     formControlName="phone"
+                     placeholder="Enter your phone number"
+                     autocomplete="tel">
+              <mat-icon matSuffix>phone</mat-icon>
+              @if (registerForm.get('phone')?.touched && registerForm.get('phone')?.errors) {
+              <mat-error>
+                {{ getErrorMessage('phone') }}
+              </mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <!-- Address Field -->
+          <div class="register-form-field">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Address</mat-label>
+              <input matInput 
+                     formControlName="address"
+                     placeholder="Enter your address"
+                     autocomplete="street-address">
+              <mat-icon matSuffix>home</mat-icon>
+              @if (registerForm.get('address')?.touched && registerForm.get('address')?.errors) {
+              <mat-error>
+                {{ getErrorMessage('address') }}
+              </mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <!-- City and Zip Code Row -->
+          <div class="form-row">
+            <div class="register-form-field half-width">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>City</mat-label>
+                <input matInput 
+                       formControlName="city"
+                       placeholder="Enter your city"
+                       autocomplete="address-level2">
+                <mat-icon matSuffix>location_city</mat-icon>
+                @if (registerForm.get('city')?.touched && registerForm.get('city')?.errors) {
+                <mat-error>
+                  {{ getErrorMessage('city') }}
+                </mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <div class="register-form-field half-width">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Zip Code</mat-label>
+                <input matInput 
+                       formControlName="zipCode"
+                       placeholder="Enter zip code"
+                       autocomplete="postal-code">
+                <mat-icon matSuffix>markunread_mailbox</mat-icon>
+                @if (registerForm.get('zipCode')?.touched && registerForm.get('zipCode')?.errors) {
+                <mat-error>
+                  {{ getErrorMessage('zipCode') }}
+                </mat-error>
+                }
+              </mat-form-field>
+            </div>
+          </div>
+
           <!-- Municipality Field -->
           <div class="register-form-field">
             <mat-form-field appearance="outline" class="full-width">

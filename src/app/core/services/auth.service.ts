@@ -17,12 +17,16 @@ export interface LoginResponse {
 }
 
 export interface RegisterRequest {
-  firstName: string;
-  lastName: string;
   email: string;
   password: string;
+  firstName: string;
+  lastName: string;
   role: string;
-  municipalityId?: string;
+  phone: string;
+  address: string;
+  city: string;
+  zipCode: string;
+  municipalityId: number;
 }
 
 @Injectable({

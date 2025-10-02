@@ -56,9 +56,13 @@ export class RegisterComponent implements OnInit {
       firstName: ['', [Validators.required, Validators.minLength(2)]],
       lastName: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
+      phone: ['', [Validators.required, Validators.pattern(/^[0-9+\-\s()]+$/)]],
+      address: ['', [Validators.required, Validators.minLength(5)]],
+      city: ['', [Validators.required, Validators.minLength(2)]],
+      zipCode: ['', [Validators.required, Validators.pattern(/^[0-9]{5}(-[0-9]{4})?$/)]],
+      municipalityId: ['', [Validators.required]],
       password: ['', [Validators.required, Validators.minLength(6)]],
-      confirmPassword: ['', [Validators.required]],
-      municipalityId: ['', [Validators.required]]
+      confirmPassword: ['', [Validators.required]]
     }, { validators: this.passwordMatchValidator });
   }
 
@@ -107,12 +111,16 @@ export class RegisterComponent implements OnInit {
       this.loadingService.show();
       
       const registerRequest: RegisterRequest = {
-        firstName: registerData.firstName,
-        lastName: registerData.lastName,
         email: registerData.email,
         password: registerData.password,
+        firstName: registerData.firstName,
+        lastName: registerData.lastName,
         role: 'CITIZEN', // Always register as CITIZEN
-        municipalityId: registerData.municipalityId
+        phone: registerData.phone,
+        address: registerData.address,
+        city: registerData.city,
+        zipCode: registerData.zipCode,
+        municipalityId: parseInt(registerData.municipalityId)
       };
       
       this.authService.register(registerRequest).subscribe({
@@ -151,6 +159,15 @@ export class RegisterComponent implements OnInit {
     }
     if (control?.hasError('minlength')) {
       return `${fieldName} must be at least ${control.errors?.['minlength'].requiredLength} characters long`;
+    }
+    if (control?.hasError('pattern')) {
+      if (fieldName === 'phone') {
+        return 'Please enter a valid phone number';
+      }
+      if (fieldName === 'zipCode') {
+        return 'Please enter a valid zip code (e.g., 12345 or 12345-6789)';
+      }
+      return `${fieldName} format is invalid`;
     }
     if (control?.hasError('passwordMismatch')) {
       return 'Passwords do not match';

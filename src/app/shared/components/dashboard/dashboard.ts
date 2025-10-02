@@ -128,6 +128,13 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.currentUser = this.authService.getCurrentUser();
+    
+    // Check if user is authenticated before loading data
+    if (!this.currentUser) {
+      console.warn('No authenticated user found');
+      return;
+    }
+    
     this.setupQuickActions();
     
     if (this.isSystemAdmin()) {
@@ -147,7 +154,13 @@ export class DashboardComponent implements OnInit {
         this.municipalities = municipalities;
         this.regions = ['all', ...new Set(municipalities.map(m => m.region))];
       },
-      error: (error) => console.error('Error loading municipalities:', error)
+      error: (error) => {
+        console.error('Error loading municipalities:', error);
+        if (error.status === 401 || error.status === 403) {
+          this.snackBar.open('Session expired. Please login again.', 'Close', { duration: 5000 });
+          this.authService.logout();
+        }
+      }
     });
   }
   
@@ -167,6 +180,10 @@ export class DashboardComponent implements OnInit {
       error: (error) => {
         console.error('Error loading collection points:', error);
         this.isLoading = false;
+        if (error.status === 401 || error.status === 403) {
+          this.snackBar.open('Session expired. Please login again.', 'Close', { duration: 5000 });
+          this.authService.logout();
+        }
       }
     });
   }
@@ -223,6 +240,10 @@ export class DashboardComponent implements OnInit {
       error: (error) => {
         console.error('Error loading aggregated data:', error);
         this.isLoading = false;
+        if (error.status === 401 || error.status === 403) {
+          this.snackBar.open('Session expired. Please login again.', 'Close', { duration: 5000 });
+          this.authService.logout();
+        }
       }
     });
     
@@ -250,7 +271,13 @@ export class DashboardComponent implements OnInit {
         // Collection trends from filtered collections
         this.generateCollectionTrends(filteredCollections);
       },
-      error: (error) => console.error('Error loading waste collections:', error)
+      error: (error) => {
+        console.error('Error loading waste collections:', error);
+        if (error.status === 401 || error.status === 403) {
+          this.snackBar.open('Session expired. Please login again.', 'Close', { duration: 5000 });
+          this.authService.logout();
+        }
+      }
     });
     
     // Load alerts
@@ -258,7 +285,13 @@ export class DashboardComponent implements OnInit {
       next: (alerts) => {
         this.aggregatedStats.activeAlerts = alerts.length;
       },
-      error: (error) => console.error('Error loading alerts:', error)
+      error: (error) => {
+        console.error('Error loading alerts:', error);
+        if (error.status === 401 || error.status === 403) {
+          this.snackBar.open('Session expired. Please login again.', 'Close', { duration: 5000 });
+          this.authService.logout();
+        }
+      }
     });
   }
   

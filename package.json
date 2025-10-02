@@ -8,7 +8,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "api": "npx json-server --watch public/db.json --port 3000",
-    "dev": "concurrently \"npm run api\" \"npm run start\"",
+    "dev": "npm run start",
     "build:prod": "ng build --configuration production"
   },
   "prettier": {
