@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://metalix-backend.onrender.com',
+  apiUrl: 'https://metalix-backend.onrender.com/api/v1',
   appName: 'Metalix',
   version: '1.0.0',
   features: {
@@ -13,15 +13,15 @@ export const environment = {
     users: '/users',
     municipalities: '/municipalities',
     zones: '/zones',
-    wasteCollectors: '/wasteCollectors',
-    wasteCollections: '/wasteCollections',
+    wasteCollectors: '/waste-collectors',
+    wasteCollections: '/waste-collections',
     rewards: '/rewards',
-    rewardTransactions: '/rewardTransactions',
-    reports: '/reports',
-    metrics: '/metrics',
-    alerts: '/alerts',
-    rfidCards: '/rfidCards',
-    sensorData: '/sensorData'
+    rewardTransactions: '/reward-transactions',
+    reports: '/monitoring/reports',
+    metrics: '/monitoring/metrics',
+    alerts: '/monitoring/alerts',
+    rfidCards: '/rfid-cards',
+    sensorData: '/sensor-data'
   },
   pagination: {
     defaultPageSize: 10,

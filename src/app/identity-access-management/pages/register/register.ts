@@ -108,14 +108,16 @@ export class RegisterComponent implements OnInit {
       };
       
       this.authService.register(registerRequest).subscribe({
-        next: (user) => {
+        next: (response) => {
           this.loadingService.hide();
-          this.notificationService.showSuccess('Registration successful! You can now log in.');
-          this.router.navigate(['/auth/login']);
+          this.notificationService.showSuccess('Registration successful! Welcome to Metalix!');
+          // Navigate to dashboard after successful registration (user is already logged in)
+          this.router.navigate(['/dashboard']);
         },
         error: (error) => {
           this.loadingService.hide();
-          this.notificationService.showError('Registration failed. Please try again.');
+          const errorMessage = error.error?.message || 'Registration failed. Please try again.';
+          this.notificationService.showError(errorMessage);
           console.error('Registration error:', error);
         }
       });

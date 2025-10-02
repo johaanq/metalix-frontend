@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { map, catchError, switchMap } from 'rxjs/operators';
 import { User, UserRole } from '../../shared/models';
 import { environment } from '../../../environments/environment';
 
@@ -61,91 +61,99 @@ export class AuthService {
   }
 
   login(email: string, password: string): Observable<LoginResponse> {
-    // Para desarrollo, usamos los datos mock directamente
-    const mockUsers = {
-      'citizen@example.com': {
-        user: {
-          id: '1',
-          email: 'citizen@example.com',
-          firstName: 'Juan',
-          lastName: 'Pérez',
-          role: UserRole.CITIZEN,
-          municipalityId: '1',
-          municipality: 'Municipalidad de Miraflores',
-          phone: '+51-1-999-888-777',
-          address: 'Av. Larco 200, Miraflores',
-          city: 'Lima',
-          zipCode: '15074',
-          isActive: true,
-          createdAt: new Date('2024-01-15T10:30:00Z'),
-          updatedAt: new Date('2024-01-15T10:30:00Z'),
-          rfidCard: 'RFID001',
-          totalPoints: 1250
-        },
-        token: 'token_citizen_123'
-      },
-      'admin@municipalidad.com': {
-        user: {
-          id: '2',
-          email: 'admin@municipalidad.com',
-          firstName: 'María',
-          lastName: 'González',
-          role: UserRole.MUNICIPALITY_ADMIN,
-          municipalityId: '1',
-          municipality: 'Municipalidad de Miraflores',
-          phone: '+51-1-617-7272',
-          address: 'Av. Larco 400, Miraflores',
-          city: 'Lima',
-          zipCode: '15074',
-          isActive: true,
-          createdAt: new Date('2024-01-10T09:00:00Z'),
-          updatedAt: new Date('2024-01-10T09:00:00Z')
-        },
-        token: 'token_admin_123'
-      },
-      'system@metalix.com': {
-        user: {
-          id: '3',
-          email: 'system@metalix.com',
-          firstName: 'Carlos',
-          lastName: 'Rodríguez',
-          role: UserRole.SYSTEM_ADMIN,
-          municipalityId: undefined,
-          phone: '+51-1-513-9000',
-          address: 'Av. República 100, Lima',
-          city: 'Lima',
-          zipCode: '15073',
-          isActive: true,
-          createdAt: new Date('2024-01-01T08:00:00Z'),
-          updatedAt: new Date('2024-01-01T08:00:00Z')
-        },
-        token: 'token_system_123'
-      }
-    };
-
-    return new Observable(observer => {
-      setTimeout(() => {
-        const userData = mockUsers[email as keyof typeof mockUsers];
-        
-        if (userData && (password === 'password123' || password === 'admin123')) {
-          localStorage.setItem('auth_token', userData.token);
-          localStorage.setItem('current_user', JSON.stringify(userData.user));
+    const loginRequest: LoginRequest = { email, password };
+    
+    return this.http.post<any>(`${environment.apiUrl}${environment.endpoints.auth}/login`, loginRequest)
+      .pipe(
+        map(response => {
+          // Backend devuelve: { token, userId, email, role }
+          // Necesitamos obtener el usuario completo
+          const token = response.token;
           
-          this.currentUserSubject.next(userData.user);
-          this.isAuthenticatedSubject.next(true);
+          localStorage.setItem('auth_token', token);
           
-          observer.next(userData);
-          observer.complete();
-        } else {
-          observer.error({ error: 'Invalid credentials' });
-        }
-      }, 1000);
-    });
+          // Obtener datos completos del usuario
+          return this.http.get<User>(`${environment.apiUrl}${environment.endpoints.users}/${response.userId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          }).pipe(
+            map(user => {
+              localStorage.setItem('current_user', JSON.stringify(user));
+              this.currentUserSubject.next(user);
+              this.isAuthenticatedSubject.next(true);
+              
+              return { user, token };
+            }),
+            catchError(error => {
+              // Si falla obtener el usuario, usar los datos básicos de la respuesta
+              const basicUser: User = {
+                id: response.userId.toString(),
+                email: response.email,
+                firstName: '',
+                lastName: '',
+                role: response.role as UserRole,
+                isActive: true,
+                createdAt: new Date(),
+                updatedAt: new Date()
+              };
+              
+              localStorage.setItem('current_user', JSON.stringify(basicUser));
+              this.currentUserSubject.next(basicUser);
+              this.isAuthenticatedSubject.next(true);
+              
+              return [{ user: basicUser, token }];
+            })
+          );
+        }),
+        switchMap(innerObservable => innerObservable),
+        catchError(error => {
+          console.error('Login error:', error);
+          return throwError(() => error);
+        })
+      );
   }
 
-  register(registerData: RegisterRequest): Observable<User> {
-    return this.http.post<User>(`${environment.apiUrl}${environment.endpoints.auth}/register`, registerData)
+  register(registerData: RegisterRequest): Observable<LoginResponse> {
+    return this.http.post<any>(`${environment.apiUrl}${environment.endpoints.auth}/register`, registerData)
       .pipe(
+        map(response => {
+          // Backend devuelve: { token, userId, email, role }
+          const token = response.token;
+          
+          localStorage.setItem('auth_token', token);
+          
+          // Obtener datos completos del usuario
+          return this.http.get<User>(`${environment.apiUrl}${environment.endpoints.users}/${response.userId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          }).pipe(
+            map(user => {
+              localStorage.setItem('current_user', JSON.stringify(user));
+              this.currentUserSubject.next(user);
+              this.isAuthenticatedSubject.next(true);
+              
+              return { user, token };
+            }),
+            catchError(error => {
+              // Si falla obtener el usuario, usar los datos básicos de la respuesta
+              const basicUser: User = {
+                id: response.userId.toString(),
+                email: response.email,
+                firstName: registerData.firstName || '',
+                lastName: registerData.lastName || '',
+                role: response.role as UserRole,
+                isActive: true,
+                createdAt: new Date(),
+                updatedAt: new Date()
+              };
+              
+              localStorage.setItem('current_user', JSON.stringify(basicUser));
+              this.currentUserSubject.next(basicUser);
+              this.isAuthenticatedSubject.next(true);
+              
+              return [{ user: basicUser, token }];
+            })
+          );
+        }),
+        switchMap(innerObservable => innerObservable),
         catchError(error => {
           console.error('Registration error:', error);
           return throwError(() => error);
