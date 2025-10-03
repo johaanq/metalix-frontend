@@ -96,13 +96,14 @@ export class RewardsDashboard implements OnInit {
       if (this.currentUser.id) {
         this.rewardService.getUserTransactions(this.currentUser.id).subscribe({
           next: (transactions: RewardTransaction[]) => {
-            const redeemedPoints = transactions
+            const transactionsArray = Array.isArray(transactions) ? transactions : [];
+            const redeemedPoints = transactionsArray
               .filter(t => t.transactionType === 'REDEEMED' && t.status === 'COMPLETED')
               .reduce((sum, t) => sum + Math.abs(t.points), 0);
             
             this.stats.redeemedPoints = redeemedPoints;
             this.stats.availablePoints = this.stats.totalPoints - redeemedPoints;
-            this.stats.rewardsEarned = transactions.filter(t => t.transactionType === 'REDEEMED').length;
+            this.stats.rewardsEarned = transactionsArray.filter(t => t.transactionType === 'REDEEMED').length;
           },
           error: (error) => {
             console.error('Error loading transactions:', error);
@@ -118,7 +119,8 @@ export class RewardsDashboard implements OnInit {
     
     this.rewardService.getRewards(municipalityId).subscribe({
       next: (rewards: Reward[]) => {
-        this.availableRewards = rewards.map(r => ({
+        const rewardsArray = Array.isArray(rewards) ? rewards : [];
+        this.availableRewards = rewardsArray.map(r => ({
           id: r.id,
           name: r.name,
           description: r.description,
@@ -140,8 +142,9 @@ export class RewardsDashboard implements OnInit {
     
     this.rewardService.getUserTransactions(this.currentUser.id).subscribe({
       next: (transactions: RewardTransaction[]) => {
+        const transactionsArray = Array.isArray(transactions) ? transactions : [];
         // Load redeemed rewards
-        this.redeemedRewards = transactions
+        this.redeemedRewards = transactionsArray
           .filter(t => t.transactionType === 'REDEEMED')
           .map(t => ({
             id: t.id,
@@ -153,7 +156,7 @@ export class RewardsDashboard implements OnInit {
           }));
 
         // Load points history
-        this.pointsHistory = transactions.map(t => ({
+        this.pointsHistory = transactionsArray.map(t => ({
           id: t.id,
           description: t.description,
           points: t.points,

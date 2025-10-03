@@ -176,7 +176,8 @@ export class MonitoringDashboard implements OnInit {
     // Load monitoring stats for each municipality
     this.municipalityService.getMunicipalities().subscribe({
       next: (municipalities) => {
-        this.municipalityMonitoringData = municipalities.map(m => ({
+        const municipalitiesArray = Array.isArray(municipalities) ? municipalities : [];
+        this.municipalityMonitoringData = municipalitiesArray.map(m => ({
           id: m.id,
           name: m.name,
           code: m.code,
@@ -258,7 +259,8 @@ export class MonitoringDashboard implements OnInit {
     
     this.monitoringService.getAlerts(municipalityId, false).subscribe({
       next: (alerts: Alert[]) => {
-        this.systemAlerts = alerts.map(a => ({
+        const alertsArray = Array.isArray(alerts) ? alerts : [];
+        this.systemAlerts = alertsArray.map(a => ({
           id: a.id,
           type: a.alertType.toLowerCase(),
           message: a.message,
@@ -297,9 +299,10 @@ export class MonitoringDashboard implements OnInit {
     // Load recent waste collections as user activity
     this.wasteCollectionService.getWasteCollections().subscribe({
       next: (collections) => {
+        const collectionsArray = Array.isArray(collections) ? collections : [];
         // For now, show all collections. 
         // TODO: Implement proper filtering by loading collectors first and matching municipalityId
-        const filteredCollections = collections;
+        const filteredCollections = collectionsArray;
         
         const recentCollections = filteredCollections.slice(0, 10);
         this.stats.totalCollections = filteredCollections.length;

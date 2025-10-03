@@ -84,7 +84,8 @@ export class WasteCollectionDashboard implements OnInit {
   private loadCollectionPoints(): void {
     this.wasteCollectionService.getWasteCollectors().subscribe({
       next: (collectors: WasteCollector[]) => {
-        this.collectionPoints = collectors.map(c => ({
+        const collectorsArray = Array.isArray(collectors) ? collectors : [];
+        this.collectionPoints = collectorsArray.map(c => ({
           id: c.id,
           name: c.name,
           address: c.location.address,
@@ -107,7 +108,8 @@ export class WasteCollectionDashboard implements OnInit {
     
     this.wasteCollectionService.getWasteCollections(this.currentUser.id).subscribe({
       next: (collections: WasteCollection[]) => {
-        this.collectionHistory = collections.map(c => ({
+        const collectionsArray = Array.isArray(collections) ? collections : [];
+        this.collectionHistory = collectionsArray.map(c => ({
           id: c.id,
           date: new Date(c.timestamp).toISOString().split('T')[0],
           wasteType: this.formatMaterialType(c.materialType),
@@ -127,13 +129,14 @@ export class WasteCollectionDashboard implements OnInit {
     
     this.wasteCollectionService.getWasteCollections(this.currentUser.id).subscribe({
       next: (collections: WasteCollection[]) => {
-        const totalWeight = collections.reduce((sum, c) => sum + c.weight, 0);
-        const totalPoints = collections.reduce((sum, c) => sum + c.pointsEarned, 0);
+        const collectionsArray = Array.isArray(collections) ? collections : [];
+        const totalWeight = collectionsArray.reduce((sum, c) => sum + c.weight, 0);
+        const totalPoints = collectionsArray.reduce((sum, c) => sum + c.pointsEarned, 0);
         
         this.stats = {
           totalWasteCollected: Math.round(totalWeight * 10) / 10,
           totalPointsEarned: totalPoints,
-          collectionSessions: collections.length,
+          collectionSessions: collectionsArray.length,
           environmentalImpact: Math.round(totalWeight * 0.25 * 10) / 10 // Approximate CO2 saved
         };
       },

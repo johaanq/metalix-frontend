@@ -151,8 +151,8 @@ export class DashboardComponent implements OnInit {
   private loadMunicipalities(): void {
     this.municipalityService.getMunicipalities().subscribe({
       next: (municipalities) => {
-        this.municipalities = municipalities;
-        this.regions = ['all', ...new Set(municipalities.map(m => m.region))];
+        this.municipalities = Array.isArray(municipalities) ? municipalities : [];
+        this.regions = ['all', ...new Set(this.municipalities.map(m => m.region))];
       },
       error: (error) => {
         console.error('Error loading municipalities:', error);
@@ -168,12 +168,13 @@ export class DashboardComponent implements OnInit {
     this.isLoading = true;
     this.wasteCollectionService.getWasteCollectors().subscribe({
       next: (collectors) => {
+        const collectorsArray = Array.isArray(collectors) ? collectors : [];
         // Filter by municipality admin's municipalityId
         if (this.currentUser?.municipalityId) {
-          this.collectionPoints = collectors.filter(c => c.municipalityId === this.currentUser?.municipalityId);
+          this.collectionPoints = collectorsArray.filter(c => c.municipalityId === this.currentUser?.municipalityId);
           this.zones = ['all', ...new Set(this.collectionPoints.map(cp => cp.zoneId))];
         } else {
-          this.collectionPoints = collectors;
+          this.collectionPoints = collectorsArray;
         }
         this.isLoading = false;
       },
@@ -195,10 +196,10 @@ export class DashboardComponent implements OnInit {
     this.municipalityService.getMunicipalities().subscribe({
       next: (municipalities) => {
         // Apply municipality and region filters
-        let filteredMunicipalities = municipalities;
+        let filteredMunicipalities = Array.isArray(municipalities) ? municipalities : [];
         
         if (this.selectedMunicipalityId !== 'all') {
-          filteredMunicipalities = municipalities.filter(m => m.id === this.selectedMunicipalityId);
+          filteredMunicipalities = filteredMunicipalities.filter(m => m.id === this.selectedMunicipalityId);
         }
         
         if (this.selectedRegion !== 'all') {
@@ -251,7 +252,8 @@ export class DashboardComponent implements OnInit {
     this.wasteCollectionService.getWasteCollections().subscribe({
       next: (allCollections) => {
         // Apply filters to collections
-        let filteredCollections = this.applyCollectionFilters(allCollections);
+        const collectionsArray = Array.isArray(allCollections) ? allCollections : [];
+        let filteredCollections = this.applyCollectionFilters(collectionsArray);
         
         this.aggregatedStats.totalCollections = filteredCollections.length;
         this.aggregatedStats.totalWasteCollected = filteredCollections.reduce((sum, c) => sum + c.weight, 0);
@@ -296,7 +298,7 @@ export class DashboardComponent implements OnInit {
   }
   
   private applyCollectionFilters(collections: any[]): any[] {
-    let filtered = collections;
+    let filtered = Array.isArray(collections) ? collections : [];
     
     // Filter by material type
     if (this.selectedMaterialType !== 'all') {
@@ -318,7 +320,7 @@ export class DashboardComponent implements OnInit {
   }
   
   private applyMunicipalityAdminFilters(collections: any[]): any[] {
-    let filtered = collections;
+    let filtered = Array.isArray(collections) ? collections : [];
     
     // Filter by collection point
     if (this.selectedCollectionPointId !== 'all') {
@@ -353,6 +355,7 @@ export class DashboardComponent implements OnInit {
   }
   
   private generateCollectionTrends(collections: any[]): void {
+    const collectionsArray = Array.isArray(collections) ? collections : [];
     // Generate real trends from filtered collections grouped by day
     const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     const dayMap = new Map<number, { collections: number, weight: number }>();
@@ -363,7 +366,7 @@ export class DashboardComponent implements OnInit {
     }
     
     // Group collections by day of week
-    collections.forEach(c => {
+    collectionsArray.forEach(c => {
       const date = new Date(c.timestamp);
       const dayIndex = (date.getDay() + 6) % 7; // Convert Sunday=0 to Monday=0
       const dayData = dayMap.get(dayIndex)!;
@@ -388,8 +391,9 @@ export class DashboardComponent implements OnInit {
       // Load citizen's waste collections
       this.wasteCollectionService.getWasteCollections(this.currentUser.id).subscribe({
         next: (collections) => {
-          this.citizenStats.wasteCollected = collections.reduce((sum, c) => sum + c.weight, 0);
-          this.citizenStats.rewardsEarned = collections.filter(c => c.pointsEarned > 0).length;
+          const collectionsArray = Array.isArray(collections) ? collections : [];
+          this.citizenStats.wasteCollected = collectionsArray.reduce((sum, c) => sum + c.weight, 0);
+          this.citizenStats.rewardsEarned = collectionsArray.filter(c => c.pointsEarned > 0).length;
           this.citizenStats.environmentalImpact = Math.floor(this.citizenStats.wasteCollected * 2.5); // CO2 saved
         },
         error: (error) => console.error('Error loading citizen stats:', error)
@@ -403,8 +407,9 @@ export class DashboardComponent implements OnInit {
     // Load waste collections for this municipality
     this.wasteCollectionService.getWasteCollections().subscribe({
       next: (allCollections) => {
+        const collectionsArray = Array.isArray(allCollections) ? allCollections : [];
         // Filter by municipality's collection points
-        let municipalityCollections = allCollections.filter(c => {
+        let municipalityCollections = collectionsArray.filter(c => {
           const collector = this.collectionPoints.find(cp => cp.id === c.collectorId);
           return collector !== undefined;
         });
