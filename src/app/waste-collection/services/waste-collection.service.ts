@@ -23,15 +23,18 @@ export interface WasteCollector {
 }
 
 export interface WasteCollection {
-  id: string;
-  userId: string;
-  collectorId: string;
+  id?: number;
+  userId: number;
+  collectorId: number;
+  municipalityId: number;
   weight: number;
-  materialType: 'METAL' | 'PLASTIC' | 'PAPER' | 'GLASS';
-  pointsEarned: number;
+  recyclableType: 'PLASTIC' | 'GLASS' | 'METAL' | 'PAPER' | 'CARDBOARD' | 'ORGANIC' | 'ELECTRONIC' | 'HAZARDOUS' | 'GENERAL';
+  points: number;
   timestamp: string;
-  status: 'PENDING' | 'COMPLETED' | 'CANCELLED';
-  rfidCard: string;
+  verified?: boolean;
+  verificationMethod?: 'RFID' | 'MANUAL' | 'QR_CODE' | 'SENSOR' | 'VISUAL';
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface SensorData {

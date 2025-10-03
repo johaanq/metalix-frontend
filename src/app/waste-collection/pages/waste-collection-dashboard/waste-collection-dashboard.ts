@@ -112,9 +112,9 @@ export class WasteCollectionDashboard implements OnInit {
         this.collectionHistory = collectionsArray.map(c => ({
           id: c.id,
           date: new Date(c.timestamp).toISOString().split('T')[0],
-          wasteType: this.formatMaterialType(c.materialType),
+          wasteType: this.formatMaterialType(c.recyclableType),
           weight: c.weight,
-          points: c.pointsEarned,
+          points: c.points,
           location: 'Collection Point' // We'll need to join with collectors if needed
         })).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       },
@@ -131,7 +131,7 @@ export class WasteCollectionDashboard implements OnInit {
       next: (collections: WasteCollection[]) => {
         const collectionsArray = Array.isArray(collections) ? collections : [];
         const totalWeight = collectionsArray.reduce((sum, c) => sum + c.weight, 0);
-        const totalPoints = collectionsArray.reduce((sum, c) => sum + c.pointsEarned, 0);
+        const totalPoints = collectionsArray.reduce((sum, c) => sum + c.points, 0);
         
         this.stats = {
           totalWasteCollected: Math.round(totalWeight * 10) / 10,
@@ -157,7 +157,12 @@ export class WasteCollectionDashboard implements OnInit {
       'METAL': 'Metal',
       'PLASTIC': 'Plastic',
       'PAPER': 'Paper',
-      'GLASS': 'Glass'
+      'GLASS': 'Glass',
+      'CARDBOARD': 'Cardboard',
+      'ORGANIC': 'Organic',
+      'ELECTRONIC': 'Electronic',
+      'HAZARDOUS': 'Hazardous',
+      'GENERAL': 'General'
     };
     return types[type] || type;
   }
@@ -178,15 +183,16 @@ export class WasteCollectionDashboard implements OnInit {
     const weight = Math.round((Math.random() * 5 + 1) * 10) / 10;
     const pointsEarned = Math.floor(weight * 20); // 20 points per kg
     
-    const newCollection: Partial<WasteCollection> = {
-      userId: this.currentUser.id,
-      collectorId: this.collectionPoints[0].id,
+    const newCollection: any = {
+      userId: parseInt(this.currentUser.id),
+      collectorId: parseInt(this.collectionPoints[0].id),
+      municipalityId: parseInt(this.currentUser.municipalityId || '1'),
       weight: weight,
-      materialType: 'METAL',
-      pointsEarned: pointsEarned,
+      recyclableType: 'METAL',
+      points: pointsEarned,
       timestamp: new Date().toISOString(),
-      status: 'COMPLETED',
-      rfidCard: this.currentUser.rfidCard || 'RFID001'
+      verified: true,
+      verificationMethod: 'RFID'
     };
 
     this.wasteCollectionService.createWasteCollection(newCollection).subscribe({

@@ -257,12 +257,12 @@ export class DashboardComponent implements OnInit {
         
         this.aggregatedStats.totalCollections = filteredCollections.length;
         this.aggregatedStats.totalWasteCollected = filteredCollections.reduce((sum, c) => sum + c.weight, 0);
-        this.aggregatedStats.totalPointsDistributed = filteredCollections.reduce((sum, c) => sum + c.pointsEarned, 0);
+        this.aggregatedStats.totalPointsDistributed = filteredCollections.reduce((sum, c) => sum + c.points, 0);
         
         // Material distribution from filtered collections
         const materialMap = new Map<string, number>();
         filteredCollections.forEach(c => {
-          materialMap.set(c.materialType, (materialMap.get(c.materialType) || 0) + c.weight);
+          materialMap.set(c.recyclableType, (materialMap.get(c.recyclableType) || 0) + c.weight);
         });
         this.materialDistribution = Array.from(materialMap.entries()).map(([type, weight]) => ({
           type,
@@ -302,7 +302,7 @@ export class DashboardComponent implements OnInit {
     
     // Filter by material type
     if (this.selectedMaterialType !== 'all') {
-      filtered = filtered.filter(c => c.materialType === this.selectedMaterialType);
+      filtered = filtered.filter(c => c.recyclableType === this.selectedMaterialType);
     }
     
     // Filter by date range
@@ -337,7 +337,7 @@ export class DashboardComponent implements OnInit {
     
     // Filter by material type
     if (this.selectedMaterialType !== 'all') {
-      filtered = filtered.filter(c => c.materialType === this.selectedMaterialType);
+      filtered = filtered.filter(c => c.recyclableType === this.selectedMaterialType);
     }
     
     // Filter by date range
@@ -393,7 +393,7 @@ export class DashboardComponent implements OnInit {
         next: (collections) => {
           const collectionsArray = Array.isArray(collections) ? collections : [];
           this.citizenStats.wasteCollected = collectionsArray.reduce((sum, c) => sum + c.weight, 0);
-          this.citizenStats.rewardsEarned = collectionsArray.filter(c => c.pointsEarned > 0).length;
+          this.citizenStats.rewardsEarned = collectionsArray.filter(c => c.points > 0).length;
           this.citizenStats.environmentalImpact = Math.floor(this.citizenStats.wasteCollected * 2.5); // CO2 saved
         },
         error: (error) => console.error('Error loading citizen stats:', error)
@@ -410,7 +410,7 @@ export class DashboardComponent implements OnInit {
         const collectionsArray = Array.isArray(allCollections) ? allCollections : [];
         // Filter by municipality's collection points
         let municipalityCollections = collectionsArray.filter(c => {
-          const collector = this.collectionPoints.find(cp => cp.id === c.collectorId);
+          const collector = this.collectionPoints.find(cp => cp.id === c.collectorId.toString());
           return collector !== undefined;
         });
         
@@ -420,13 +420,13 @@ export class DashboardComponent implements OnInit {
         // Calculate aggregated stats for municipality
         this.aggregatedStats.totalCollections = municipalityCollections.length;
         this.aggregatedStats.totalWasteCollected = municipalityCollections.reduce((sum, c) => sum + c.weight, 0);
-        this.aggregatedStats.totalPointsDistributed = municipalityCollections.reduce((sum, c) => sum + c.pointsEarned, 0);
+        this.aggregatedStats.totalPointsDistributed = municipalityCollections.reduce((sum, c) => sum + c.points, 0);
         this.aggregatedStats.totalCitizens = new Set(municipalityCollections.map(c => c.userId)).size;
         
         // Material distribution
         const materialMap = new Map<string, number>();
         municipalityCollections.forEach(c => {
-          materialMap.set(c.materialType, (materialMap.get(c.materialType) || 0) + c.weight);
+          materialMap.set(c.recyclableType, (materialMap.get(c.recyclableType) || 0) + c.weight);
         });
         this.materialDistribution = Array.from(materialMap.entries()).map(([type, weight]) => ({
           type,
