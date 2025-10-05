@@ -312,6 +312,16 @@
       "description": "Puntos ganados por recolección de metal",
       "timestamp": "2024-01-24T10:15:00Z",
       "status": "COMPLETED"
+    },
+    {
+      "id": "1759683555414",
+      "userId": "1",
+      "rewardId": "2",
+      "transactionType": "REDEEMED",
+      "points": -300,
+      "description": "Canje de Entrada Gratis Cine",
+      "timestamp": "2025-10-05T16:59:15.414Z",
+      "status": "COMPLETED"
     }
   ],
   "reports": [

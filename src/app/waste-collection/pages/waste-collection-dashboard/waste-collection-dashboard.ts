@@ -109,14 +109,18 @@ export class WasteCollectionDashboard implements OnInit {
     this.wasteCollectionService.getWasteCollections(this.currentUser.id).subscribe({
       next: (collections: WasteCollection[]) => {
         const collectionsArray = Array.isArray(collections) ? collections : [];
-        this.collectionHistory = collectionsArray.map(c => ({
-          id: c.id,
-          date: new Date(c.timestamp).toISOString().split('T')[0],
-          wasteType: this.formatMaterialType(c.recyclableType),
-          weight: c.weight,
-          points: c.points,
-          location: 'Collection Point' // We'll need to join with collectors if needed
-        })).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        this.collectionHistory = collectionsArray.map(c => {
+          // Normalizar datos para manejar inconsistencias en el db.json
+          const normalizedCollection = this.normalizeCollectionData(c);
+          return {
+            id: normalizedCollection.id,
+            date: new Date(normalizedCollection.timestamp).toISOString().split('T')[0],
+            wasteType: this.formatMaterialType(normalizedCollection.recyclableType),
+            weight: normalizedCollection.weight,
+            points: normalizedCollection.points,
+            location: 'Collection Point' // We'll need to join with collectors if needed
+          };
+        }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       },
       error: (error) => {
         console.error('Error loading collection history:', error);
@@ -130,13 +134,14 @@ export class WasteCollectionDashboard implements OnInit {
     this.wasteCollectionService.getWasteCollections(this.currentUser.id).subscribe({
       next: (collections: WasteCollection[]) => {
         const collectionsArray = Array.isArray(collections) ? collections : [];
-        const totalWeight = collectionsArray.reduce((sum, c) => sum + c.weight, 0);
-        const totalPoints = collectionsArray.reduce((sum, c) => sum + c.points, 0);
+        const normalizedCollections = collectionsArray.map(c => this.normalizeCollectionData(c));
+        const totalWeight = normalizedCollections.reduce((sum, c) => sum + c.weight, 0);
+        const totalPoints = normalizedCollections.reduce((sum, c) => sum + c.points, 0);
         
         this.stats = {
           totalWasteCollected: Math.round(totalWeight * 10) / 10,
           totalPointsEarned: totalPoints,
-          collectionSessions: collectionsArray.length,
+          collectionSessions: normalizedCollections.length,
           environmentalImpact: Math.round(totalWeight * 0.25 * 10) / 10 // Approximate CO2 saved
         };
       },
@@ -150,6 +155,20 @@ export class WasteCollectionDashboard implements OnInit {
     // Simple approximation - in a real app, use geolocation
     const distance = Math.random() * 3 + 0.5;
     return `${distance.toFixed(1)} km`;
+  }
+
+  private normalizeCollectionData(collection: any): any {
+    // Normalizar datos para manejar inconsistencias en el db.json
+    return {
+      id: collection.id,
+      timestamp: collection.timestamp,
+      weight: collection.weight,
+      recyclableType: collection.recyclableType || collection.materialType || 'METAL',
+      points: collection.points || collection.pointsEarned || 0,
+      userId: collection.userId,
+      collectorId: collection.collectorId,
+      status: collection.status || 'COMPLETED'
+    };
   }
 
   private formatMaterialType(type: string): string {
