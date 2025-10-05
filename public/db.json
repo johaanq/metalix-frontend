@@ -118,10 +118,10 @@
       "municipalityId": "1",
       "name": "Zona Centro",
       "boundaries": {
-        "north": -12.1000,
-        "south": -12.1200,
-        "east": -77.0200,
-        "west": -77.0400
+        "north": -12.1,
+        "south": -12.12,
+        "east": -77.02,
+        "west": -77.04
       },
       "population": 25000,
       "zoneType": "RESIDENTIAL",
@@ -133,10 +133,10 @@
       "municipalityId": "1",
       "name": "Zona Comercial",
       "boundaries": {
-        "north": -12.0800,
-        "south": -12.1000,
-        "east": -77.0000,
-        "west": -77.0200
+        "north": -12.08,
+        "south": -12.1,
+        "east": -77,
+        "west": -77.02
       },
       "population": 15000,
       "zoneType": "COMMERCIAL",
@@ -151,8 +151,8 @@
       "zoneId": "1",
       "name": "Recolector Centro-001",
       "location": {
-        "latitude": -12.1100,
-        "longitude": -77.0300,
+        "latitude": -12.11,
+        "longitude": -77.03,
         "address": "Av. Larco 200, Miraflores"
       },
       "status": "ACTIVE",
@@ -169,8 +169,8 @@
       "zoneId": "2",
       "name": "Recolector Comercial-001",
       "location": {
-        "latitude": -12.0900,
-        "longitude": -77.0100,
+        "latitude": -12.09,
+        "longitude": -77.01,
         "address": "Av. Comercio 150, Miraflores"
       },
       "status": "ACTIVE",
@@ -215,6 +215,30 @@
       "timestamp": "2024-01-23T16:20:00Z",
       "status": "COMPLETED",
       "rfidCard": "RFID001"
+    },
+    {
+      "id": "3f48",
+      "userId": 1,
+      "collectorId": 1,
+      "municipalityId": 1,
+      "weight": 3.2,
+      "recyclableType": "METAL",
+      "points": 64,
+      "timestamp": "2025-10-05T16:57:51.699Z",
+      "verified": true,
+      "verificationMethod": "RFID"
+    },
+    {
+      "id": "7b6e",
+      "userId": 1,
+      "collectorId": 1,
+      "municipalityId": 1,
+      "weight": 4.2,
+      "recyclableType": "METAL",
+      "points": 84,
+      "timestamp": "2025-10-05T16:57:52.986Z",
+      "verified": true,
+      "verificationMethod": "RFID"
     }
   ],
   "rewards": [
@@ -486,7 +510,7 @@
       "province": "Lima",
       "district": "San Isidro",
       "population": 65000,
-      "area": 11.10,
+      "area": 11.1,
       "address": "Calle Las Begonias 475",
       "phone": "+51-1-513-9000",
       "email": "contacto@munisanisidro.gob.pe",

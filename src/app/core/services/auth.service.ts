@@ -65,50 +65,33 @@ export class AuthService {
   }
 
   login(email: string, password: string): Observable<LoginResponse> {
-    const loginRequest: LoginRequest = { email, password };
-    
-    return this.http.post<any>(`${environment.apiUrl}${environment.endpoints.auth}/login`, loginRequest)
+    // Para json-server, vamos a simular el login buscando el usuario directamente
+    return this.http.get<User[]>(`${environment.apiUrl}${environment.endpoints.users}?email=${email}`)
       .pipe(
-        map(response => {
-          // Backend devuelve: { token, userId, email, role }
-          // Necesitamos obtener el usuario completo
-          const token = response.token;
+        map(users => {
+          if (users.length === 0) {
+            throw new Error('User not found');
+          }
+          
+          const user = users[0];
+          
+          // Simular validación de contraseña
+          if (password !== 'password123' && password !== 'admin123') {
+            throw new Error('Invalid credentials');
+          }
+          
+          const token = `token_${user.id}_${Date.now()}`;
+          const loginResponse: LoginResponse = { user, token };
           
           localStorage.setItem('auth_token', token);
+          localStorage.setItem('current_user', JSON.stringify(user));
           
-          // Obtener datos completos del usuario
-          return this.http.get<User>(`${environment.apiUrl}${environment.endpoints.users}/${response.userId}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          }).pipe(
-            map(user => {
-              localStorage.setItem('current_user', JSON.stringify(user));
-              this.currentUserSubject.next(user);
-              this.isAuthenticatedSubject.next(true);
-              
-              return { user, token };
-            }),
-            catchError(error => {
-              // Si falla obtener el usuario, usar los datos básicos de la respuesta
-              const basicUser: User = {
-                id: response.userId.toString(),
-                email: response.email,
-                firstName: '',
-                lastName: '',
-                role: response.role as UserRole,
-                isActive: true,
-                createdAt: new Date(),
-                updatedAt: new Date()
-              };
-              
-              localStorage.setItem('current_user', JSON.stringify(basicUser));
-              this.currentUserSubject.next(basicUser);
-              this.isAuthenticatedSubject.next(true);
-              
-              return [{ user: basicUser, token }];
-            })
-          );
+          this.currentUserSubject.next(user);
+          this.isAuthenticatedSubject.next(true);
+          
+          console.log('Login successful:', user);
+          return loginResponse;
         }),
-        switchMap(innerObservable => innerObservable),
         catchError(error => {
           console.error('Login error:', error);
           return throwError(() => error);
