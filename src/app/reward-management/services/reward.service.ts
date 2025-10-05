@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
 export interface Reward {
@@ -55,18 +56,54 @@ export class RewardService {
   }
 
   redeemReward(userId: string, rewardId: string): Observable<RewardTransaction> {
-    return this.http.post<RewardTransaction>(`${environment.apiUrl}${environment.endpoints.rewardTransactions}/redeem`, {
-      userId: parseInt(userId),
-      rewardId: parseInt(rewardId)
-    });
+    // First get the reward to get its points cost
+    return this.getRewardById(rewardId).pipe(
+      switchMap(reward => {
+        const newTransaction: RewardTransaction = {
+          id: Date.now().toString(), // Simple ID generation
+          userId: userId,
+          rewardId: rewardId,
+          transactionType: 'REDEEMED',
+          points: -reward.pointsCost,
+          description: `Canje de ${reward.name}`,
+          timestamp: new Date().toISOString(),
+          status: 'COMPLETED'
+        };
+        
+        return this.http.post<RewardTransaction>(`${environment.apiUrl}${environment.endpoints.rewardTransactions}`, newTransaction);
+      })
+    );
   }
 
   getUserTransactions(userId: string): Observable<RewardTransaction[]> {
-    return this.http.get<RewardTransaction[]>(`${environment.apiUrl}${environment.endpoints.rewardTransactions}/user/${userId}`);
+    return this.http.get<RewardTransaction[]>(`${environment.apiUrl}${environment.endpoints.rewardTransactions}?userId=${userId}`);
   }
 
   getUserPoints(userId: string): Observable<UserPoints> {
-    return this.http.get<UserPoints>(`${environment.apiUrl}${environment.endpoints.users}/${userId}/points`);
+    return this.getUserTransactions(userId).pipe(
+      switchMap(transactions => {
+        const totalPoints = transactions
+          .filter(t => t.transactionType === 'EARNED')
+          .reduce((sum, t) => sum + t.points, 0);
+        
+        const redeemedPoints = transactions
+          .filter(t => t.transactionType === 'REDEEMED' && t.status === 'COMPLETED')
+          .reduce((sum, t) => sum + Math.abs(t.points), 0);
+        
+        const userPoints: UserPoints = {
+          userId: userId,
+          totalPoints: totalPoints,
+          availablePoints: totalPoints - redeemedPoints,
+          redeemedPoints: redeemedPoints,
+          lastUpdated: new Date().toISOString()
+        };
+        
+        return new Observable<UserPoints>(observer => {
+          observer.next(userPoints);
+          observer.complete();
+        });
+      })
+    );
   }
 
   createReward(reward: Partial<Reward>): Observable<Reward> {
