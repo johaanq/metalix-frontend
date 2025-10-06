@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://metalix-backend.onrender.com/api/v1',
+  apiUrl: '', // No longer needed with mock data
   appName: 'Metalix',
   version: '1.0.0',
   features: {

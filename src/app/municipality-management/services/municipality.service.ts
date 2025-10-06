@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { MockDataService } from '../../core/services/mock-data.service';
 
 export interface Municipality {
   id: string;
@@ -53,21 +54,21 @@ export interface MunicipalityStats {
 })
 export class MunicipalityService {
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private mockDataService: MockDataService
+  ) { }
 
   getMunicipalities(): Observable<Municipality[]> {
-    return this.http.get<Municipality[]>(`${environment.apiUrl}${environment.endpoints.municipalities}`);
+    return this.mockDataService.getMunicipalities();
   }
 
   getMunicipalityById(id: string): Observable<Municipality> {
-    return this.http.get<Municipality>(`${environment.apiUrl}${environment.endpoints.municipalities}/${id}`);
+    return this.mockDataService.getMunicipalityById(id);
   }
 
   getZones(municipalityId?: string): Observable<Zone[]> {
-    const url = municipalityId 
-      ? `${environment.apiUrl}${environment.endpoints.zones}/municipality/${municipalityId}`
-      : `${environment.apiUrl}${environment.endpoints.zones}`;
-    return this.http.get<Zone[]>(url);
+    return this.mockDataService.getZones();
   }
 
   getZoneById(id: string): Observable<Zone> {

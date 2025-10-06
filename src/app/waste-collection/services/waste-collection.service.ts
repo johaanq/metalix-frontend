@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import { MockDataService } from '../../core/services/mock-data.service';
 
 export interface WasteCollector {
   id: string;
@@ -52,35 +54,71 @@ export interface SensorData {
 })
 export class WasteCollectionService {
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private mockDataService: MockDataService
+  ) { }
 
   getWasteCollectors(): Observable<WasteCollector[]> {
-    return this.http.get<WasteCollector[]>(`${environment.apiUrl}${environment.endpoints.wasteCollectors}`);
+    return this.mockDataService.getWasteCollectors();
   }
 
   getWasteCollectorById(id: string): Observable<WasteCollector> {
-    return this.http.get<WasteCollector>(`${environment.apiUrl}${environment.endpoints.wasteCollectors}/${id}`);
+    return this.mockDataService.getWasteCollectors().pipe(
+      map(collectors => collectors.find(c => c.id === id) || null)
+    );
   }
 
   getWasteCollections(userId?: string): Observable<WasteCollection[]> {
-    const url = userId 
-      ? `${environment.apiUrl}${environment.endpoints.wasteCollections}?userId=${userId}`
-      : `${environment.apiUrl}${environment.endpoints.wasteCollections}`;
-    return this.http.get<WasteCollection[]>(url);
+    if (userId) {
+      return this.mockDataService.getWasteCollectionsByUser(userId);
+    }
+    return this.mockDataService.getWasteCollections();
   }
 
   createWasteCollection(collection: Partial<WasteCollection>): Observable<WasteCollection> {
-    return this.http.post<WasteCollection>(`${environment.apiUrl}${environment.endpoints.wasteCollections}`, collection);
+    // Simular creación - en mock data no se persiste
+    const newCollection = {
+      id: Date.now(),
+      ...collection,
+      timestamp: new Date().toISOString(),
+      status: 'COMPLETED'
+    } as WasteCollection;
+    
+    return of(newCollection);
   }
 
   getSensorData(collectorId?: string): Observable<SensorData[]> {
-    const url = collectorId 
-      ? `${environment.apiUrl}${environment.endpoints.sensorData}?collectorId=${collectorId}`
-      : `${environment.apiUrl}${environment.endpoints.sensorData}`;
-    return this.http.get<SensorData[]>(url);
+    return this.mockDataService.getSensorData();
   }
 
   updateCollectorStatus(id: string, status: string): Observable<WasteCollector> {
-    return this.http.put<WasteCollector>(`${environment.apiUrl}${environment.endpoints.wasteCollectors}/${id}`, { status });
+    // Simular actualización - en mock data no se persiste
+    return this.getWasteCollectorById(id).pipe(
+      map(collector => {
+        if (collector) {
+          return { ...collector, status: status as any, updatedAt: new Date().toISOString() };
+        }
+        // Si no existe, crear uno por defecto
+        return {
+          id: id,
+          municipalityId: '1',
+          zoneId: '1',
+          name: 'Default Collector',
+          location: {
+            latitude: -12.11,
+            longitude: -77.03,
+            address: 'Default Address'
+          },
+          status: status as any,
+          capacity: 100,
+          currentWeight: 0,
+          lastMaintenance: new Date().toISOString(),
+          nextMaintenance: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        } as WasteCollector;
+      })
+    );
   }
 }

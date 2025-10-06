@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import { MockDataService } from '../../core/services/mock-data.service';
 
 export interface Report {
   id: string;
@@ -63,69 +65,86 @@ export interface DashboardData {
 })
 export class MonitoringService {
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private mockDataService: MockDataService
+  ) { }
 
   getReports(municipalityId?: string): Observable<Report[]> {
-    const url = municipalityId 
-      ? `${environment.apiUrl}${environment.endpoints.reports}?municipalityId=${municipalityId}`
-      : `${environment.apiUrl}${environment.endpoints.reports}`;
-    return this.http.get<Report[]>(url);
+    return this.mockDataService.getReports();
   }
 
   getReportById(id: string): Observable<Report> {
-    return this.http.get<Report>(`${environment.apiUrl}${environment.endpoints.reports}/${id}`);
+    return this.mockDataService.getReports().pipe(
+      map(reports => reports.find(r => r.id === id) || null)
+    );
   }
 
   generateReport(reportType: string, municipalityId: string, generatedBy: string): Observable<Report> {
-    return this.http.post<Report>(`${environment.apiUrl}${environment.endpoints.reports}`, {
-      reportType,
+    // Simular generación de reporte - en mock data no se persiste
+    const newReport: Report = {
+      id: Date.now().toString(),
+      reportType: reportType as any,
       municipalityId,
       generatedBy,
       data: {},
-      status: 'PENDING'
-    });
+      status: 'COMPLETED',
+      createdAt: new Date().toISOString()
+    };
+    
+    return of(newReport);
   }
 
   getMetrics(municipalityId?: string, name?: string): Observable<Metric[]> {
-    let url = `${environment.apiUrl}${environment.endpoints.metrics}`;
-    const params = [];
-    
-    if (municipalityId) params.push(`municipalityId=${municipalityId}`);
-    if (name) params.push(`name=${name}`);
-    
-    if (params.length > 0) {
-      url += `?${params.join('&')}`;
-    }
-    
-    return this.http.get<Metric[]>(url);
+    return this.mockDataService.getMetrics();
   }
 
   getAlerts(municipalityId?: string, isResolved?: boolean): Observable<Alert[]> {
-    let url = `${environment.apiUrl}${environment.endpoints.alerts}`;
-    const params = [];
-    
-    if (municipalityId) params.push(`municipalityId=${municipalityId}`);
-    if (isResolved !== undefined) params.push(`isResolved=${isResolved}`);
-    
-    if (params.length > 0) {
-      url += `?${params.join('&')}`;
-    }
-    
-    return this.http.get<Alert[]>(url);
+    return this.mockDataService.getAlerts();
   }
 
   resolveAlert(id: string): Observable<Alert> {
-    return this.http.patch<Alert>(`${environment.apiUrl}${environment.endpoints.alerts}/${id}`, {
-      isResolved: true,
-      resolvedAt: new Date().toISOString()
-    });
+    // Simular resolución de alerta - en mock data no se persiste
+    return this.mockDataService.getAlerts().pipe(
+      map(alerts => {
+        const alert = alerts.find(a => a.id === id);
+        if (alert) {
+          return { ...alert, isResolved: true, resolvedAt: new Date().toISOString() };
+        }
+        return null;
+      })
+    );
   }
 
   getDashboardData(municipalityId: string): Observable<DashboardData> {
-    return this.http.get<DashboardData>(`${environment.apiUrl}${environment.endpoints.municipalities}/${municipalityId}/dashboard`);
+    // Simular datos del dashboard combinando mock data
+    return this.mockDataService.getWasteCollections().pipe(
+      map(collections => {
+        const totalCollections = collections.length;
+        const totalWeight = collections.reduce((sum, c) => sum + (c.weight || 0), 0);
+        
+        const dashboardData: DashboardData = {
+          municipalityId,
+          totalCollections,
+          totalWeight,
+          activeUsers: 1250, // Del mock data
+          totalPoints: 45000, // Del mock data
+          environmentalImpact: {
+            co2Saved: totalWeight * 0.5, // Estimación
+            energySaved: totalWeight * 2.5,
+            treesEquivalent: totalWeight * 0.02
+          },
+          recentAlerts: [], // Se llenará con getAlerts
+          topCollectors: [],
+          lastUpdated: new Date().toISOString()
+        };
+        
+        return dashboardData;
+      })
+    );
   }
 
   getRealTimeMetrics(municipalityId: string): Observable<Metric[]> {
-    return this.http.get<Metric[]>(`${environment.apiUrl}${environment.endpoints.metrics}?municipalityId=${municipalityId}&_sort=timestamp&_order=desc&_limit=50`);
+    return this.mockDataService.getMetrics();
   }
 }

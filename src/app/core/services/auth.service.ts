@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, throwError, of } from 'rxjs';
 import { map, catchError, switchMap } from 'rxjs/operators';
 import { User, UserRole } from '../../shared/models';
 import { environment } from '../../../environments/environment';
+import { MockDataService } from './mock-data.service';
 
 export interface LoginRequest {
   email: string;
@@ -41,7 +42,8 @@ export class AuthService {
 
   constructor(
     private http: HttpClient,
-    private router: Router
+    private router: Router,
+    private mockDataService: MockDataService
   ) {
     // Check for existing token in localStorage
     const token = localStorage.getItem('auth_token');
@@ -65,87 +67,58 @@ export class AuthService {
   }
 
   login(email: string, password: string): Observable<LoginResponse> {
-    // Para json-server, vamos a simular el login buscando el usuario directamente
-    return this.http.get<User[]>(`${environment.apiUrl}${environment.endpoints.users}?email=${email}`)
-      .pipe(
-        map(users => {
-          if (users.length === 0) {
-            throw new Error('User not found');
-          }
-          
-          const user = users[0];
-          
-          // Simular validación de contraseña
-          if (password !== 'password123' && password !== 'admin123') {
-            throw new Error('Invalid credentials');
-          }
-          
-          const token = `token_${user.id}_${Date.now()}`;
-          const loginResponse: LoginResponse = { user, token };
-          
-          localStorage.setItem('auth_token', token);
-          localStorage.setItem('current_user', JSON.stringify(user));
-          
-          this.currentUserSubject.next(user);
-          this.isAuthenticatedSubject.next(true);
-          
-          console.log('Login successful:', user);
-          return loginResponse;
-        }),
-        catchError(error => {
-          console.error('Login error:', error);
-          return throwError(() => error);
-        })
-      );
+    // Usar mock data service en lugar de HTTP
+    return this.mockDataService.login(email, password).pipe(
+      map(response => {
+        if (!response) {
+          throw new Error('Invalid credentials');
+        }
+        
+        localStorage.setItem('auth_token', response.token);
+        localStorage.setItem('current_user', JSON.stringify(response.user));
+        
+        this.currentUserSubject.next(response.user);
+        this.isAuthenticatedSubject.next(true);
+        
+        console.log('Login successful:', response.user);
+        return response;
+      }),
+      catchError(error => {
+        console.error('Login error:', error);
+        return throwError(() => error);
+      })
+    );
   }
 
   register(registerData: RegisterRequest): Observable<LoginResponse> {
-    return this.http.post<any>(`${environment.apiUrl}${environment.endpoints.auth}/register`, registerData)
-      .pipe(
-        map(response => {
-          // Backend devuelve: { token, userId, email, role }
-          const token = response.token;
-          
-          localStorage.setItem('auth_token', token);
-          
-          // Obtener datos completos del usuario
-          return this.http.get<User>(`${environment.apiUrl}${environment.endpoints.users}/${response.userId}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          }).pipe(
-            map(user => {
-              localStorage.setItem('current_user', JSON.stringify(user));
-              this.currentUserSubject.next(user);
-              this.isAuthenticatedSubject.next(true);
-              
-              return { user, token };
-            }),
-            catchError(error => {
-              // Si falla obtener el usuario, usar los datos básicos de la respuesta
-              const basicUser: User = {
-                id: response.userId.toString(),
-                email: response.email,
-                firstName: registerData.firstName || '',
-                lastName: registerData.lastName || '',
-                role: response.role as UserRole,
-                isActive: true,
-                createdAt: new Date(),
-                updatedAt: new Date()
-              };
-              
-              localStorage.setItem('current_user', JSON.stringify(basicUser));
-              this.currentUserSubject.next(basicUser);
-              this.isAuthenticatedSubject.next(true);
-              
-              return [{ user: basicUser, token }];
-            })
-          );
-        }),
-        switchMap(innerObservable => innerObservable),
-        catchError(error => {
-          console.error('Registration error:', error);
-          return throwError(() => error);
-        })
-      );
+    // Simular registro - en mock data no se persiste
+    const newUser: User = {
+      id: Date.now().toString(),
+      email: registerData.email,
+      firstName: registerData.firstName,
+      lastName: registerData.lastName,
+      role: registerData.role as UserRole,
+      municipalityId: registerData.municipalityId?.toString(),
+      phone: registerData.phone,
+      address: registerData.address,
+      city: registerData.city,
+      zipCode: registerData.zipCode,
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    const token = `token_${newUser.id}_${Date.now()}`;
+    const loginResponse: LoginResponse = { user: newUser, token };
+    
+    localStorage.setItem('auth_token', token);
+    localStorage.setItem('current_user', JSON.stringify(newUser));
+    
+    this.currentUserSubject.next(newUser);
+    this.isAuthenticatedSubject.next(true);
+    
+    console.log('Registration successful:', newUser);
+    return of(loginResponse);
   }
 
   logout(): void {

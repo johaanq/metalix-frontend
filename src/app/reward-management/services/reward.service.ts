@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { switchMap, map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import { MockDataService } from '../../core/services/mock-data.service';
 
 export interface Reward {
   id: string;
@@ -42,25 +43,31 @@ export interface UserPoints {
 })
 export class RewardService {
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private mockDataService: MockDataService
+  ) { }
 
   getRewards(municipalityId?: string): Observable<Reward[]> {
-    const url = municipalityId 
-      ? `${environment.apiUrl}${environment.endpoints.rewards}?municipalityId=${municipalityId}&isActive=true`
-      : `${environment.apiUrl}${environment.endpoints.rewards}?isActive=true`;
-    return this.http.get<Reward[]>(url);
+    return this.mockDataService.getRewards();
   }
 
   getRewardById(id: string): Observable<Reward> {
-    return this.http.get<Reward>(`${environment.apiUrl}${environment.endpoints.rewards}/${id}`);
+    return this.mockDataService.getRewards().pipe(
+      map(rewards => rewards.find(r => r.id === id) || null)
+    );
   }
 
   redeemReward(userId: string, rewardId: string): Observable<RewardTransaction> {
-    // First get the reward to get its points cost
+    // Simular canje - en mock data no se persiste
     return this.getRewardById(rewardId).pipe(
       switchMap(reward => {
+        if (!reward) {
+          throw new Error('Reward not found');
+        }
+        
         const newTransaction: RewardTransaction = {
-          id: Date.now().toString(), // Simple ID generation
+          id: Date.now().toString(),
           userId: userId,
           rewardId: rewardId,
           transactionType: 'REDEEMED',
@@ -70,13 +77,13 @@ export class RewardService {
           status: 'COMPLETED'
         };
         
-        return this.http.post<RewardTransaction>(`${environment.apiUrl}${environment.endpoints.rewardTransactions}`, newTransaction);
+        return of(newTransaction);
       })
     );
   }
 
   getUserTransactions(userId: string): Observable<RewardTransaction[]> {
-    return this.http.get<RewardTransaction[]>(`${environment.apiUrl}${environment.endpoints.rewardTransactions}?userId=${userId}`);
+    return this.mockDataService.getRewardTransactionsByUser(userId);
   }
 
   getUserPoints(userId: string): Observable<UserPoints> {
@@ -107,14 +114,44 @@ export class RewardService {
   }
 
   createReward(reward: Partial<Reward>): Observable<Reward> {
-    return this.http.post<Reward>(`${environment.apiUrl}${environment.endpoints.rewards}`, reward);
+    // Simular creación - en mock data no se persiste
+    const newReward = {
+      id: Date.now().toString(),
+      ...reward,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    } as Reward;
+    
+    return of(newReward);
   }
 
   updateReward(id: string, reward: Partial<Reward>): Observable<Reward> {
-    return this.http.put<Reward>(`${environment.apiUrl}${environment.endpoints.rewards}/${id}`, reward);
+    // Simular actualización - en mock data no se persiste
+    return this.getRewardById(id).pipe(
+      map(existingReward => {
+        if (existingReward) {
+          return { ...existingReward, ...reward, updatedAt: new Date().toISOString() };
+        }
+        // Si no existe, crear uno nuevo
+        return {
+          id: id,
+          name: reward.name || 'New Reward',
+          description: reward.description || '',
+          pointsCost: reward.pointsCost || 100,
+          category: reward.category || 'SHOPPING',
+          isActive: reward.isActive !== undefined ? reward.isActive : true,
+          stock: reward.stock || 0,
+          validUntil: reward.validUntil || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+          municipalityId: reward.municipalityId || '1',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        } as Reward;
+      })
+    );
   }
 
   deleteReward(id: string): Observable<void> {
-    return this.http.delete<void>(`${environment.apiUrl}${environment.endpoints.rewards}/${id}`);
+    // Simular eliminación - en mock data no se persiste
+    return of(void 0);
   }
 }
