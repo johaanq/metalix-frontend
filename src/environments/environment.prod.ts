@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  apiUrl: 'http://localhost:8081/api/v1', // TODO: Cambiar a la URL de producción
+  apiUrl: 'https://metalix-backend.onrender.com/api/v1',
   appName: 'Metalix',
   version: '1.0.0',
   features: {
