@@ -194,16 +194,25 @@ export class MunicipalityDashboard implements OnInit, OnDestroy {
         const collectorsArray = Array.isArray(collectors) ? collectors : [];
         this.collectionPoints = collectorsArray
           .filter((c: WasteCollector) => c.municipalityId === municipalityId)
-          .map(c => ({
-            id: parseInt(c.id),
-            name: c.name,
-            address: c.location.address,
-            status: c.status === 'ACTIVE' ? 'Active' : c.status === 'MAINTENANCE' ? 'Maintenance' : 'Inactive',
-            capacity: c.capacity > 80 ? 'High' : c.capacity > 50 ? 'Medium' : 'Low',
-            lastMaintenance: c.lastMaintenance ? new Date(c.lastMaintenance).toISOString().split('T')[0] : 'N/A',
-            totalCollections: 0,
-            beach: c.location.address.includes('Playa') ? c.location.address.split('Playa')[1]?.trim() || 'N/A' : 'N/A'
-          }));
+          .map(c => {
+            // Handle location - can be string or object
+            const address = typeof c.location === 'string' 
+              ? c.location 
+              : (c.location?.address || 'N/A');
+            
+            return {
+              id: parseInt(c.id),
+              name: c.name,
+              address: address,
+              status: c.status === 'ACTIVE' ? 'Active' : c.status === 'MAINTENANCE' ? 'Maintenance' : 'Inactive',
+              capacity: c.capacity > 80 ? 'High' : c.capacity > 50 ? 'Medium' : 'Low',
+              lastMaintenance: c.lastMaintenance ? new Date(c.lastMaintenance).toISOString().split('T')[0] : 'N/A',
+              totalCollections: 0,
+              beach: address && typeof address === 'string' && address.includes('Playa') 
+                ? address.split('Playa')[1]?.trim() || 'N/A' 
+                : 'N/A'
+            };
+          });
         
         // Process citizens
         const citizensArray = Array.isArray(citizens) ? citizens : [];
@@ -300,16 +309,25 @@ export class MunicipalityDashboard implements OnInit, OnDestroy {
       next: (collectors: WasteCollector[]) => {
         this.collectionPoints = collectors
           .filter(c => c.municipalityId === municipalityId)
-          .map(c => ({
-            id: parseInt(c.id),
-            name: c.name,
-            address: c.location.address,
-            status: c.status === 'ACTIVE' ? 'Active' : c.status === 'MAINTENANCE' ? 'Maintenance' : 'Inactive',
-            capacity: c.capacity > 80 ? 'High' : c.capacity > 50 ? 'Medium' : 'Low',
-            lastMaintenance: c.lastMaintenance ? new Date(c.lastMaintenance).toISOString().split('T')[0] : 'N/A',
-            totalCollections: 0, // TODO: Calculate from waste collections
-            beach: c.location.address.includes('Playa') ? c.location.address.split('Playa')[1]?.trim() || 'N/A' : 'N/A'
-          }));
+          .map(c => {
+            // Handle location - can be string or object
+            const address = typeof c.location === 'string' 
+              ? c.location 
+              : (c.location?.address || 'N/A');
+            
+            return {
+              id: parseInt(c.id),
+              name: c.name,
+              address: address,
+              status: c.status === 'ACTIVE' ? 'Active' : c.status === 'MAINTENANCE' ? 'Maintenance' : 'Inactive',
+              capacity: c.capacity > 80 ? 'High' : c.capacity > 50 ? 'Medium' : 'Low',
+              lastMaintenance: c.lastMaintenance ? new Date(c.lastMaintenance).toISOString().split('T')[0] : 'N/A',
+              totalCollections: 0, // TODO: Calculate from waste collections
+              beach: address && typeof address === 'string' && address.includes('Playa') 
+                ? address.split('Playa')[1]?.trim() || 'N/A' 
+                : 'N/A'
+            };
+          });
       },
       error: (error) => {
         console.error('Error loading collection points:', error);
