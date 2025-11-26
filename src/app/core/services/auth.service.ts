@@ -79,6 +79,9 @@ export class AuthService {
       loginRequest
     ).pipe(
       switchMap(authResponse => {
+        // Guardar el token INMEDIATAMENTE para que el interceptor lo use en la siguiente petición
+        localStorage.setItem('auth_token', authResponse.token);
+        
         // Obtener el usuario completo usando el userId
         return this.http.get<any>(`${environment.apiUrl}${environment.endpoints.users}/${authResponse.userId}`).pipe(
           map(userResponse => {
@@ -106,7 +109,7 @@ export class AuthService {
               token: authResponse.token
             };
             
-            localStorage.setItem('auth_token', authResponse.token);
+            // Guardar el usuario completo en localStorage
             localStorage.setItem('current_user', JSON.stringify(user));
             
             this.currentUserSubject.next(user);
@@ -114,6 +117,12 @@ export class AuthService {
             
             console.log('Login successful:', user);
             return loginResponse;
+          }),
+          catchError(error => {
+            // Si falla la obtención del usuario, limpiar el token
+            localStorage.removeItem('auth_token');
+            console.error('Error getting user after login:', error);
+            return throwError(() => error);
           })
         );
       }),
