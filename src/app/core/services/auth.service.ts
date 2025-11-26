@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, throwError, of } from 'rxjs';
 import { map, catchError, switchMap } from 'rxjs/operators';
 import { User, UserRole } from '../../shared/models';
 import { environment } from '../../../environments/environment';
@@ -82,16 +82,44 @@ export class AuthService {
         // Guardar el token INMEDIATAMENTE para que el interceptor lo use en la siguiente petición
         localStorage.setItem('auth_token', authResponse.token);
         
-        // Obtener el usuario completo usando el userId
-        return this.http.get<any>(`${environment.apiUrl}${environment.endpoints.users}/${authResponse.userId}`).pipe(
+        // Intentar obtener el usuario completo usando el endpoint /profile primero
+        // Si falla, intentar con el endpoint directo /users/{id}
+        // Si ambos fallan, construir un usuario básico desde la respuesta del login
+        return this.http.get<any>(`${environment.apiUrl}${environment.endpoints.users}/${authResponse.userId}/profile`).pipe(
+          catchError(() => {
+            // Si /profile falla, intentar con el endpoint directo
+            return this.http.get<any>(`${environment.apiUrl}${environment.endpoints.users}/${authResponse.userId}`).pipe(
+              catchError(() => {
+                // Si ambos fallan, construir usuario básico desde AuthenticationResponse
+                const basicUser: User = {
+                  id: authResponse.userId?.toString() || '',
+                  email: authResponse.email || '',
+                  firstName: '',
+                  lastName: '',
+                  role: authResponse.role as UserRole,
+                  municipalityId: undefined,
+                  phone: undefined,
+                  address: undefined,
+                  city: undefined,
+                  zipCode: undefined,
+                  isActive: true,
+                  createdAt: new Date(),
+                  updatedAt: new Date(),
+                  rfidCard: undefined,
+                  totalPoints: 0
+                };
+                return of(basicUser);
+              })
+            );
+          }),
           map(userResponse => {
             // Mapear la respuesta del backend al modelo User del frontend
             const user: User = {
-              id: userResponse.id?.toString() || '',
-              email: userResponse.email || '',
+              id: userResponse.id?.toString() || authResponse.userId?.toString() || '',
+              email: userResponse.email || authResponse.email || '',
               firstName: userResponse.firstName || '',
               lastName: userResponse.lastName || '',
-              role: userResponse.role as UserRole,
+              role: (userResponse.role as UserRole) || (authResponse.role as UserRole),
               municipalityId: userResponse.municipalityId?.toString(),
               phone: userResponse.phone,
               address: userResponse.address,
@@ -101,7 +129,7 @@ export class AuthService {
               createdAt: userResponse.createdAt ? new Date(userResponse.createdAt) : new Date(),
               updatedAt: userResponse.updatedAt ? new Date(userResponse.updatedAt) : new Date(),
               rfidCard: userResponse.rfidCard,
-              totalPoints: userResponse.totalPoints
+              totalPoints: userResponse.totalPoints || 0
             };
             
             const loginResponse: LoginResponse = {
@@ -119,10 +147,36 @@ export class AuthService {
             return loginResponse;
           }),
           catchError(error => {
-            // Si falla la obtención del usuario, limpiar el token
-            localStorage.removeItem('auth_token');
-            console.error('Error getting user after login:', error);
-            return throwError(() => error);
+            // Si todo falla, construir usuario básico y permitir login
+            console.warn('Could not fetch full user data, using basic user info:', error);
+            const basicUser: User = {
+              id: authResponse.userId?.toString() || '',
+              email: authResponse.email || '',
+              firstName: '',
+              lastName: '',
+              role: authResponse.role as UserRole,
+              municipalityId: undefined,
+              phone: undefined,
+              address: undefined,
+              city: undefined,
+              zipCode: undefined,
+              isActive: true,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+              rfidCard: undefined,
+              totalPoints: 0
+            };
+            
+            const loginResponse: LoginResponse = {
+              user: basicUser,
+              token: authResponse.token
+            };
+            
+            localStorage.setItem('current_user', JSON.stringify(basicUser));
+            this.currentUserSubject.next(basicUser);
+            this.isAuthenticatedSubject.next(true);
+            
+            return of(loginResponse);
           })
         );
       }),
