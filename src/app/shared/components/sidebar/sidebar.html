@@ -1,0 +1,58 @@
+<!-- Sidebar Header -->
+<div class="sidebar-header" [class.collapsed]="isCollapsed">
+  <div class="sidebar-logo">
+    <mat-icon>recycling</mat-icon>
+    <h1 class="sidebar-title" *ngIf="!isCollapsed">Metalix</h1>
+  </div>
+</div>
+
+<!-- Navigation Menu -->
+<div class="sidebar-nav" [class.collapsed]="isCollapsed">
+  <a class="nav-item" routerLink="/dashboard" routerLinkActive="active" [class.collapsed]="isCollapsed" [title]="isCollapsed ? 'Dashboard' : ''">
+    <mat-icon>dashboard</mat-icon>
+    <span *ngIf="!isCollapsed">Dashboard</span>
+  </a>
+  
+  <!-- Citizen-only options -->
+  <ng-container *ngIf="isCitizen()">
+    <a class="nav-item" routerLink="/waste-collection" routerLinkActive="active" [class.collapsed]="isCollapsed" [title]="isCollapsed ? 'Waste Collection' : ''">
+      <mat-icon>recycling</mat-icon>
+      <span *ngIf="!isCollapsed">Waste Collection</span>
+    </a>
+    
+    <a class="nav-item" routerLink="/rewards" routerLinkActive="active" [class.collapsed]="isCollapsed" [title]="isCollapsed ? 'Rewards' : ''">
+      <mat-icon>card_giftcard</mat-icon>
+      <span *ngIf="!isCollapsed">Rewards</span>
+    </a>
+  </ng-container>
+  
+  <!-- Admin-only options -->
+  <ng-container *ngIf="isAdmin()">
+    <a class="nav-item" routerLink="/municipality" routerLinkActive="active" [class.collapsed]="isCollapsed" [title]="isCollapsed ? 'Municipality' : ''">
+      <mat-icon>location_city</mat-icon>
+      <span *ngIf="!isCollapsed">Municipality</span>
+    </a>
+    
+    <a class="nav-item" routerLink="/monitoring" routerLinkActive="active" [class.collapsed]="isCollapsed" [title]="isCollapsed ? 'Monitoring' : ''">
+      <mat-icon>analytics</mat-icon>
+      <span *ngIf="!isCollapsed">Monitoring</span>
+    </a>
+  </ng-container>
+</div>
+
+<!-- User Info Section -->
+<div class="user-info" [class.collapsed]="isCollapsed">
+  <div class="user-profile-link" (click)="navigateToProfile()" [title]="isCollapsed ? getUserDisplayName() : ''">
+    <div class="user-avatar">
+      <mat-icon>account_circle</mat-icon>
+    </div>
+    <div class="user-details" *ngIf="!isCollapsed">
+      <h4>{{ getUserDisplayName() }}</h4>
+      <p>{{ getUserRoleDisplay() }}</p>
+    </div>
+  </div>
+  <button mat-button class="logout-button" (click)="logout()" [class.collapsed]="isCollapsed" [title]="isCollapsed ? 'Logout' : ''">
+    <mat-icon>logout</mat-icon>
+    <span *ngIf="!isCollapsed">Logout</span>
+  </button>
+</div>

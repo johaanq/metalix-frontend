@@ -1,0 +1,364 @@
+/* Dynamic Island Sidebar - Modern Design */
+:host {
+  display: flex;
+  flex-direction: column;
+  height: fit-content;
+  padding: 12px;
+  margin: 0;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 12px;
+  transition: opacity 0.15s ease;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+/* Sidebar Header - Dynamic Island Style */
+.sidebar-header {
+  padding: 14px 18px;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-radius: 0;
+  color: #1DB4C6;
+  text-align: center;
+  margin-bottom: 0;
+  box-shadow: none;
+  border: none;
+  transition: opacity 0.15s ease;
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 0;
+}
+
+.sidebar-logo mat-icon {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+  color: #1DB4C6;
+}
+
+.sidebar-title {
+  font-size: 20px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #1DB4C6 0%, #20c997 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
+  letter-spacing: -0.5px;
+  transition: opacity 0.3s ease, width 0.3s ease;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* Collapsed State - Dynamic Island */
+.sidebar-header.collapsed {
+  padding: 14px 18px !important;
+  justify-content: center !important;
+  align-items: center !important;
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.sidebar-header.collapsed .sidebar-logo {
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 0 !important;
+  display: flex !important;
+  visibility: visible !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 40px !important;
+}
+
+.sidebar-header.collapsed .sidebar-logo mat-icon {
+  font-size: 32px !important;
+  width: 32px !important;
+  height: 32px !important;
+  line-height: 32px !important;
+  color: #1DB4C6 !important;
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  -webkit-text-fill-color: #1DB4C6 !important;
+  background-clip: unset !important;
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative !important;
+  z-index: 10 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Navigation Menu - Dynamic Island Cards */
+.sidebar-nav {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  padding: 11px 16px;
+  color: #64748b;
+  text-decoration: none;
+  transition: background-color 0.15s ease;
+  border-radius: 10px;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: none;
+  box-shadow: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: #1DB4C6;
+  transform: scaleY(0);
+  transition: transform 0.15s ease;
+  border-radius: 0 4px 4px 0;
+}
+
+.nav-item:hover {
+  background: rgba(29, 180, 198, 0.1);
+  color: #1DB4C6;
+}
+
+.nav-item:hover::before {
+  transform: scaleY(1);
+}
+
+.nav-item.active {
+  background: rgba(29, 180, 198, 0.15);
+  color: #1DB4C6;
+  font-weight: 600;
+}
+
+.nav-item.active::before {
+  transform: scaleY(1);
+}
+
+.nav-item mat-icon {
+  margin-right: 12px;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.nav-item:hover mat-icon,
+.nav-item.active mat-icon {
+  color: #1DB4C6;
+}
+
+.nav-item span {
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* Collapsed Navigation Items - Same size, just hide text and center icon */
+.nav-item.collapsed {
+  padding: 11px 16px;
+  justify-content: center;
+  align-items: center;
+}
+
+.nav-item.collapsed mat-icon {
+  margin-right: 0;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.nav-item.collapsed span {
+  display: none;
+}
+
+/* User Info Section - Dynamic Island Style */
+.user-info {
+  padding: 14px 16px;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-radius: 0;
+  box-shadow: none;
+  border: none;
+  margin-top: 0;
+  animation: fadeInUp 0.5s ease-out 0.3s backwards;
+}
+
+.user-profile-link {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 8px;
+  margin: -8px;
+  border-radius: 12px;
+  transition: background-color 0.15s ease;
+  text-decoration: none;
+  color: inherit;
+}
+
+.user-profile-link:hover {
+  background: rgba(29, 180, 198, 0.1);
+}
+
+.user-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: #1DB4C6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 10px;
+  box-shadow: 0 2px 8px rgba(29, 180, 198, 0.2);
+  flex-shrink: 0;
+}
+
+.user-avatar mat-icon {
+  color: white;
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+}
+
+.user-details {
+  flex: 1;
+}
+
+.user-details h4 {
+  margin: 0 0 3px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  letter-spacing: -0.2px;
+}
+
+.user-details p {
+  margin: 0;
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.logout-button {
+  margin-top: 0;
+  width: 100%;
+  color: #64748b;
+  border: none;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: none;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  padding: 9px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.logout-button:hover {
+  color: #1DB4C6;
+  background: rgba(29, 180, 198, 0.1);
+}
+
+.logout-button.collapsed {
+  padding: 8px;
+  min-width: 40px;
+  width: 40px;
+  justify-content: center;
+}
+
+.logout-button.collapsed span {
+  display: none;
+}
+
+.logout-button.collapsed mat-icon {
+  margin: 0;
+}
+
+/* Collapsed User Info - Same size, just hide text and center */
+.user-info.collapsed {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-info.collapsed .user-profile-link {
+  padding: 8px;
+  margin: -8px;
+  justify-content: center;
+  width: 100%;
+  flex-direction: row;
+  align-items: center;
+}
+
+.user-info.collapsed .user-avatar {
+  margin-right: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+}
+
+.user-info.collapsed .user-avatar mat-icon {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+}
+
+.user-info.collapsed .user-details {
+  display: none;
+}
+
+.user-info.collapsed .logout-button {
+  width: 100%;
+  padding: 9px 12px;
+  justify-content: center;
+}
+
+.user-info.collapsed .logout-button span {
+  display: none;
+}
+
+.user-info.collapsed .logout-button mat-icon {
+  margin: 0;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}

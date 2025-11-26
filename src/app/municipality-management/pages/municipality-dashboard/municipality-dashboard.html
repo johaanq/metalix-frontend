@@ -1,0 +1,407 @@
+<mat-sidenav-container class="dashboard-container" [class.sidebar-collapsed]="!isSidenavOpen">
+  <!-- Sidebar Navigation -->
+  <mat-sidenav #sidenav 
+               [opened]="true" 
+               mode="side" 
+               class="dashboard-sidenav"
+               [class.collapsed]="!isSidenavOpen">
+    
+    <app-sidebar [currentUser]="currentUser" [isCollapsed]="!isSidenavOpen"></app-sidebar>
+  </mat-sidenav>
+
+  <!-- Main Content -->
+  <mat-sidenav-content class="dashboard-content">
+    <!-- Top Toolbar -->
+    <mat-toolbar class="dashboard-toolbar">
+      <button mat-icon-button (click)="toggleSidenav()">
+        <mat-icon>menu</mat-icon>
+      </button>
+      
+      <span class="toolbar-title">Municipality Management</span>
+      
+      <span class="toolbar-spacer"></span>
+      
+      <div class="toolbar-actions">
+        @if (showMunicipalityDetails()) {
+          <button 
+            mat-raised-button 
+            color="primary"
+            (click)="addCollectionPoint()"
+            [disabled]="isLoading">
+            @if (isLoading) {
+              <mat-spinner diameter="20"></mat-spinner>
+            } @else {
+              <mat-icon>add_location</mat-icon>
+            }
+            {{  isLoading ? 'Adding...' : 'Add Collection Point' }}
+          </button>
+        }
+        <span class="welcome-text">Welcome, {{  currentUser?.firstName }}!</span>
+      </div>
+    </mat-toolbar>
+
+    <!-- Dashboard Content -->
+    <div class="main-content">
+      
+      <!-- VISTA 1: Municipalities List (Solo SYSTEM_ADMIN sin selección) -->
+      @if (showMunicipalitiesView()) {
+        
+        <!-- Loading Spinner -->
+        @if (isLoading) {
+          <div class="loading-container">
+            <mat-spinner></mat-spinner>
+            <p>Loading municipalities...</p>
+          </div>
+        }
+        
+        @if (!isLoading) {
+          <div class="municipalities-header">
+          <div class="header-content">
+            <mat-icon class="header-icon">location_city</mat-icon>
+            <div>
+              <h2>Municipalidades Costeras</h2>
+              <p>Selecciona una municipalidad para gestionar sus recolectores en playas</p>
+            </div>
+          </div>
+          <button mat-raised-button color="primary" (click)="addMunicipality()">
+            <mat-icon>add</mat-icon>
+            Add Municipality
+          </button>
+          </div>
+
+          <!-- Municipalities Grid -->
+          <div class="municipalities-grid">
+            @for (municipality of municipalities; track municipality.id) {
+              <mat-card 
+            class="municipality-card"
+            (click)="selectMunicipality(municipality)">
+            <mat-card-header>
+              <div mat-card-avatar class="municipality-avatar">
+                <mat-icon>location_city</mat-icon>
+              </div>
+              <mat-card-title>{{ municipality.name }}</mat-card-title>
+              <mat-card-subtitle>
+                <mat-chip color="primary" class="status-chip">
+                  <mat-icon matChipAvatar>check_circle</mat-icon>
+                  {{ municipality.status }}
+                </mat-chip>
+              </mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="municipality-stats">
+                <div class="stat">
+                  <mat-icon>people</mat-icon>
+                  <span>{{ municipality.totalCitizens }} Citizens</span>
+                </div>
+                <div class="stat">
+                  <mat-icon>place</mat-icon>
+                  <span>{{ municipality.collectionPoints }} Points</span>
+                </div>
+                <div class="stat">
+                  <mat-icon>card_giftcard</mat-icon>
+                  <span>{{ municipality.activeRewards }} Rewards</span>
+                </div>
+                <div class="stat">
+                  <mat-icon>recycling</mat-icon>
+                  <span>{{ municipality.totalWasteCollected }} kg</span>
+                </div>
+              </div>
+              <div class="municipality-info">
+                <div class="info-row">
+                  <span class="label">Region:</span>
+                  <span class="value">{{ municipality.region }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="label">Code:</span>
+                  <span class="value">{{ municipality.code }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="label">Population:</span>
+                  <span class="value">{{ municipality.population | number }}</span>
+                </div>
+              </div>
+            </mat-card-content>
+            <mat-card-actions>
+              <button mat-button color="primary">
+                <mat-icon>arrow_forward</mat-icon>
+                View Details
+              </button>
+            </mat-card-actions>
+              </mat-card>
+            }
+          </div>
+        }
+      }
+
+      <!-- VISTA 2: Municipality Details (MUNICIPALITY_ADMIN o SYSTEM_ADMIN con selección) -->
+      @if (showMunicipalityDetails()) {
+        <!-- Back button for SYSTEM_ADMIN -->
+        @if (isSystemAdmin() && selectedMunicipality) {
+          <button 
+            mat-button 
+            (click)="backToMunicipalities()"
+            class="back-button">
+            <mat-icon>arrow_back</mat-icon>
+            Back to Municipalities
+          </button>
+        }
+
+        <!-- Municipality Overview -->
+        <div class="municipality-overview">
+          <div class="overview-header">
+            <div class="overview-icon">
+              <mat-icon>location_city</mat-icon>
+            </div>
+            <div class="overview-info">
+              <h2>{{ selectedMunicipality?.name || currentUser?.municipality }}</h2>
+              <p>Gestiona recolectores en playas, bañistas y recompensas</p>
+            </div>
+            <div class="overview-actions">
+              <mat-chip color="primary">
+                <mat-icon matChipAvatar>check_circle</mat-icon>
+                Active
+              </mat-chip>
+            </div>
+          </div>
+
+        <!-- Municipality Stats -->
+        <div class="municipality-stats">
+          <div class="stat-item">
+            <div class="stat-icon primary">
+              <mat-icon>people</mat-icon>
+            </div>
+            <div class="stat-content">
+              <h3>{{  stats.totalCitizens }}</h3>
+              <p>Total Citizens</p>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon accent">
+              <mat-icon>recycling</mat-icon>
+            </div>
+            <div class="stat-content">
+              <h3>{{  stats.totalWasteCollected }} kg</h3>
+              <p>Waste Collected</p>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon primary">
+              <mat-icon>stars</mat-icon>
+            </div>
+            <div class="stat-content">
+              <h3>{{  stats.totalPointsDistributed }}</h3>
+              <p>Points Distributed</p>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon accent">
+              <mat-icon>place</mat-icon>
+            </div>
+            <div class="stat-content">
+              <h3>{{  stats.collectionPoints }}</h3>
+              <p>Collection Points</p>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon primary">
+              <mat-icon>card_giftcard</mat-icon>
+            </div>
+            <div class="stat-content">
+              <h3>{{  stats.activeRewards }}</h3>
+              <p>Active Rewards</p>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon accent">
+              <mat-icon>eco</mat-icon>
+            </div>
+            <div class="stat-content">
+              <h3>{{  stats.environmentalImpact }} kg</h3>
+              <p>CO₂ Impact</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Municipality Content Tabs -->
+      <mat-tab-group class="municipality-tabs">
+        <!-- Collection Points Tab -->
+        <mat-tab label="Recolectores en Playas">
+          <div class="tab-content">
+            <div class="collection-points-grid">
+              @for (point of collectionPoints; track point.id) {
+                <mat-card class="point-card">
+                <mat-card-header>
+                  <mat-card-title>{{  point.name }}</mat-card-title>
+                  <mat-card-subtitle>
+                    <mat-chip [color]="getStatusColor(point.status)">
+                      {{  point.status }}
+                    </mat-chip>
+                  </mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content>
+                  <div class="point-details">
+                    <div class="detail-item">
+                      <mat-icon>place</mat-icon>
+                      <span>{{  point.address }}</span>
+                    </div>
+                    <div class="detail-item">
+                      <mat-icon [class]="getCapacityColor(point.capacity)">
+                        battery_charging_full
+                      </mat-icon>
+                      <span>Capacity: {{  point.capacity }}</span>
+                    </div>
+                    <div class="detail-item">
+                      <mat-icon class="accent">build</mat-icon>
+                      <span>Last Maintenance: {{  point.lastMaintenance }}</span>
+                    </div>
+                    <div class="detail-item">
+                      <mat-icon class="primary">recycling</mat-icon>
+                      <span>Collections: {{  point.totalCollections }}</span>
+                    </div>
+                  </div>
+                </mat-card-content>
+                <mat-card-actions>
+                  <button mat-button color="primary" (click)="editCollectionPoint(point)">
+                    <mat-icon>edit</mat-icon>
+                    Edit
+                  </button>
+                  <button mat-button color="accent" (click)="scheduleMaintenance(point)" [disabled]="isLoading">
+                    <mat-icon>build</mat-icon>
+                    Maintenance
+                  </button>
+                </mat-card-actions>
+                </mat-card>
+              }
+            </div>
+          </div>
+        </mat-tab>
+
+        <!-- Citizens Tab -->
+        <mat-tab label="Bañistas">
+          <div class="tab-content">
+            <div class="citizens-table">
+              <table mat-table [dataSource]="citizensData" class="mat-elevation-z2">
+                <ng-container matColumnDef="name">
+                  <th mat-header-cell *matHeaderCellDef>Name</th>
+                  <td mat-cell *matCellDef="let citizen">{{  citizen.name }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="email">
+                  <th mat-header-cell *matHeaderCellDef>Email</th>
+                  <td mat-cell *matCellDef="let citizen">{{  citizen.email }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="points">
+                  <th mat-header-cell *matHeaderCellDef>Total Points</th>
+                  <td mat-cell *matCellDef="let citizen">
+                    <mat-chip color="primary">
+                      <mat-icon matChipAvatar>stars</mat-icon>
+                      {{  citizen.totalPoints }}
+                    </mat-chip>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="waste">
+                  <th mat-header-cell *matHeaderCellDef>Waste Collected</th>
+                  <td mat-cell *matCellDef="let citizen">{{  citizen.wasteCollected }} kg</td>
+                </ng-container>
+
+                <ng-container matColumnDef="lastActivity">
+                  <th mat-header-cell *matHeaderCellDef>Last Activity</th>
+                  <td mat-cell *matCellDef="let citizen">{{  citizen.lastActivity }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="status">
+                  <th mat-header-cell *matHeaderCellDef>Status</th>
+                  <td mat-cell *matCellDef="let citizen">
+                    <mat-chip [color]="getStatusColor(citizen.status)">
+                      {{  citizen.status }}
+                    </mat-chip>
+                  </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="['name', 'email', 'points', 'waste', 'lastActivity', 'status']"></tr>
+                <tr mat-row *matRowDef="let row; columns: ['name', 'email', 'points', 'waste', 'lastActivity', 'status'];"></tr>
+              </table>
+            </div>
+          </div>
+        </mat-tab>
+
+        <!-- Rewards Management Tab -->
+        <mat-tab label="Recompensas">
+          <div class="tab-content">
+            <div class="rewards-header" style="margin-bottom: 24px; display: flex; justify-content: flex-end;">
+              <button mat-raised-button color="primary" (click)="createReward()">
+                <mat-icon>add</mat-icon>
+                Create New Reward
+              </button>
+            </div>
+            <div class="rewards-management-grid">
+              @for (reward of rewardsManagement; track reward.id) {
+                <mat-card class="reward-management-card">
+                <mat-card-header>
+                  <mat-card-title>{{  reward.name }}</mat-card-title>
+                  <mat-card-subtitle>
+                    <mat-chip [color]="getStatusColor(reward.status)">
+                      {{  reward.status }}
+                    </mat-chip>
+                  </mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content>
+                  <div class="reward-stats">
+                    <div class="stat">
+                      <span class="stat-label">Points Required</span>
+                      <span class="stat-value">{{  reward.pointsRequired }}</span>
+                    </div>
+                    <div class="stat">
+                      <span class="stat-label">Total Redeemed</span>
+                      <span class="stat-value">{{  reward.totalRedeemed }}</span>
+                    </div>
+                    <div class="stat">
+                      <span class="stat-label">Total Cost</span>
+                      <span class="stat-value">{{  reward.totalCost }} pts</span>
+                    </div>
+                  </div>
+                </mat-card-content>
+                <mat-card-actions>
+                  <button mat-button color="primary" (click)="editReward(reward)">
+                    <mat-icon>edit</mat-icon>
+                    Edit
+                  </button>
+                  <button mat-button color="accent" (click)="viewRewardDetails(reward)">
+                    <mat-icon>visibility</mat-icon>
+                    View Details
+                  </button>
+                </mat-card-actions>
+                </mat-card>
+              }
+            </div>
+          </div>
+        </mat-tab>
+
+        <!-- Recent Activities Tab -->
+        <mat-tab label="Actividades Recientes">
+          <div class="tab-content">
+            <div class="activities-list">
+              @for (activity of recentActivities; track activity.id) {
+                <div class="activity-item">
+                <div class="activity-icon">
+                  <mat-icon>{{  getActivityIcon(activity.type) }}</mat-icon>
+                </div>
+                <div class="activity-content">
+                  <h4>{{  activity.description }}</h4>
+                  <p>{{  activity.timestamp }}</p>
+                </div>
+                </div>
+              }
+            </div>
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+      }
+      <!-- End VISTA 2 -->
+      
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

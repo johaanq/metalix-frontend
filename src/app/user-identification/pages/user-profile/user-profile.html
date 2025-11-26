@@ -1,0 +1,253 @@
+<mat-sidenav-container class="dashboard-container">
+  <!-- Sidebar Navigation -->
+  <mat-sidenav #sidenav 
+               [opened]="isSidenavOpen" 
+               mode="side" 
+               class="dashboard-sidenav">
+    
+    <app-sidebar [currentUser]="currentUser"></app-sidebar>
+  </mat-sidenav>
+
+  <!-- Main Content -->
+  <mat-sidenav-content class="dashboard-content">
+    <!-- Top Toolbar -->
+    <mat-toolbar class="dashboard-toolbar">
+      <button mat-icon-button (click)="toggleSidenav()">
+        <mat-icon>menu</mat-icon>
+      </button>
+      
+      <span class="toolbar-title">User Profile</span>
+      
+      <span class="toolbar-spacer"></span>
+      
+      <div class="toolbar-actions">
+        <span class="welcome-text">Welcome, {{ currentUser?.firstName }}!</span>
+      </div>
+    </mat-toolbar>
+
+    <!-- Dashboard Content -->
+    <div class="main-content">
+      <!-- Loading Indicator -->
+      <div *ngIf="!isDataLoaded" class="loading-container">
+        <mat-spinner diameter="50"></mat-spinner>
+        <p>Cargando información del usuario...</p>
+      </div>
+      
+      <!-- Profile Overview -->
+      <div *ngIf="isDataLoaded" class="profile-overview">
+        <div class="profile-header">
+          <div class="profile-avatar">
+            <mat-icon>account_circle</mat-icon>
+          </div>
+          <div class="profile-info">
+            <h2>{{ profileData.firstName }} {{ profileData.lastName }}</h2>
+            <p class="profile-role">{{ getUserRoleDisplay() }}</p>
+            <p class="profile-member">Member since {{ profileData.memberSince }}</p>
+          </div>
+          <div class="profile-actions">
+            <button 
+              *ngIf="!isEditing" 
+              mat-raised-button 
+              color="primary" 
+              (click)="editProfile()">
+              <mat-icon>edit</mat-icon>
+              Edit Profile
+            </button>
+            <div *ngIf="isEditing" class="edit-actions">
+              <button 
+                mat-raised-button 
+                color="primary" 
+                (click)="saveProfile()"
+                [disabled]="isLoading">
+                <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
+                <mat-icon *ngIf="!isLoading">save</mat-icon>
+                {{ isLoading ? 'Saving...' : 'Save Changes' }}
+              </button>
+              <button 
+                mat-stroked-button 
+                (click)="cancelEdit()"
+                [disabled]="isLoading">
+                <mat-icon>cancel</mat-icon>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Profile Stats - Only for Citizens -->
+        <div class="profile-stats" *ngIf="currentUser?.role === 'CITIZEN'">
+          <div class="stat-item">
+            <div class="stat-icon primary">
+              <mat-icon>stars</mat-icon>
+            </div>
+            <div class="stat-content">
+              <h3>{{ profileData.totalPoints }}</h3>
+              <p>Total Points</p>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon accent">
+              <mat-icon>recycling</mat-icon>
+            </div>
+            <div class="stat-content">
+              <h3>{{ profileData.wasteCollected }} kg</h3>
+              <p>Waste Collected</p>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon primary">
+              <mat-icon>card_giftcard</mat-icon>
+            </div>
+            <div class="stat-content">
+              <h3>{{ profileData.rewardsEarned }}</h3>
+              <p>Rewards Earned</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile Content Tabs -->
+      <mat-tab-group class="profile-tabs">
+        <!-- Personal Information Tab -->
+        <mat-tab label="Personal Information">
+          <div class="tab-content">
+            <mat-card class="info-card">
+              <mat-card-header>
+                <mat-card-title>Personal Details</mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="form-grid">
+                  <mat-form-field appearance="outline">
+                    <mat-label>First Name</mat-label>
+                    <input 
+                      matInput 
+                      [(ngModel)]="profileData.firstName"
+                      [readonly]="!isEditing">
+                  </mat-form-field>
+                  
+                  <mat-form-field appearance="outline">
+                    <mat-label>Last Name</mat-label>
+                    <input 
+                      matInput 
+                      [(ngModel)]="profileData.lastName"
+                      [readonly]="!isEditing">
+                  </mat-form-field>
+                  
+                  <mat-form-field appearance="outline">
+                    <mat-label>Email</mat-label>
+                    <input 
+                      matInput 
+                      type="email"
+                      [(ngModel)]="profileData.email"
+                      readonly>
+                  </mat-form-field>
+                  
+                  <mat-form-field appearance="outline">
+                    <mat-label>Phone</mat-label>
+                    <input 
+                      matInput 
+                      type="tel"
+                      [(ngModel)]="profileData.phone"
+                      [readonly]="!isEditing">
+                  </mat-form-field>
+                  
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Address</mat-label>
+                    <input 
+                      matInput 
+                      [(ngModel)]="profileData.address"
+                      [readonly]="!isEditing">
+                  </mat-form-field>
+                  
+                  <mat-form-field appearance="outline">
+                    <mat-label>City</mat-label>
+                    <input 
+                      matInput 
+                      [(ngModel)]="profileData.city"
+                      [readonly]="!isEditing">
+                  </mat-form-field>
+                  
+                  <mat-form-field appearance="outline">
+                    <mat-label>ZIP Code</mat-label>
+                    <input 
+                      matInput 
+                      [(ngModel)]="profileData.zipCode"
+                      [readonly]="!isEditing">
+                  </mat-form-field>
+                  
+                  <mat-form-field appearance="outline">
+                    <mat-label>Municipality</mat-label>
+                    <input 
+                      matInput 
+                      [(ngModel)]="profileData.municipality"
+                      [readonly]="!isEditing">
+                  </mat-form-field>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </mat-tab>
+
+        <!-- Achievements Tab - Only for Citizens -->
+        <mat-tab label="Achievements" *ngIf="currentUser?.role === 'CITIZEN'">
+          <div class="tab-content">
+            <div class="achievements-grid">
+              <mat-card 
+                *ngFor="let achievement of achievements" 
+                class="achievement-card"
+                [class.earned]="achievement.earned">
+                <mat-card-content>
+                  <div class="achievement-icon">
+                    <mat-icon [color]="getAchievementColor(achievement.earned)">
+                      {{ achievement.icon }}
+                    </mat-icon>
+                  </div>
+                  <h3>{{ achievement.name }}</h3>
+                  <p>{{ achievement.description }}</p>
+                  <div class="achievement-status">
+                      <mat-chip 
+                        [color]="getAchievementColor(achievement.earned)">
+                      {{ achievement.earned ? 'Earned' : 'Not Earned' }}
+                    </mat-chip>
+                    <span *ngIf="achievement.earned" class="achievement-date">
+                      {{ achievement.date }}
+                    </span>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </div>
+          </div>
+        </mat-tab>
+
+        <!-- Activity History Tab - Only for Citizens -->
+        <mat-tab label="Activity History" *ngIf="currentUser?.role === 'CITIZEN'">
+          <div class="tab-content">
+            <div class="activity-list">
+              <div 
+                *ngFor="let activity of activityHistory" 
+                class="activity-item">
+                <div class="activity-icon">
+                  <mat-icon [color]="getActivityColor(activity.points)">
+                    {{ getActivityIcon(activity.type) }}
+                  </mat-icon>
+                </div>
+                <div class="activity-content">
+                  <h4>{{ activity.description }}</h4>
+                  <p>{{ activity.date }}</p>
+                </div>
+                <div class="activity-points">
+                  <mat-chip 
+                    [color]="getActivityColor(activity.points)" 
+                    selected>
+                    <mat-icon matChipAvatar>stars</mat-icon>
+                    {{ activity.points > 0 ? '+' : '' }}{{ activity.points }}
+                  </mat-chip>
+                </div>
+              </div>
+            </div>
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

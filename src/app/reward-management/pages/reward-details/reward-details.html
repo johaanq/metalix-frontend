@@ -1,0 +1,160 @@
+<mat-sidenav-container class="dashboard-container" [class.sidebar-collapsed]="!isSidenavOpen">
+  <!-- Sidebar Navigation -->
+  <mat-sidenav #sidenav 
+               [opened]="true" 
+               mode="side" 
+               class="dashboard-sidenav"
+               [class.collapsed]="!isSidenavOpen">
+    <app-sidebar [currentUser]="currentUser" [isCollapsed]="!isSidenavOpen"></app-sidebar>
+  </mat-sidenav>
+
+  <!-- Main Content -->
+  <mat-sidenav-content class="dashboard-content">
+    <!-- Top Toolbar -->
+    <mat-toolbar class="dashboard-toolbar">
+      <button mat-icon-button (click)="toggleSidenav()">
+        <mat-icon>menu</mat-icon>
+      </button>
+      
+      <span class="toolbar-title">Reward Details</span>
+      
+      <span class="toolbar-spacer"></span>
+      
+      <div class="toolbar-actions">
+        <span class="welcome-text">Welcome, {{ currentUser?.firstName }}!</span>
+      </div>
+    </mat-toolbar>
+
+    <!-- Details Content -->
+    <div class="main-content">
+      @if (isLoading) {
+        <div class="loading-container">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p>Loading reward details...</p>
+        </div>
+      } @else if (reward) {
+        <div class="details-container">
+          <mat-card class="details-card">
+            <mat-card-header>
+              <div class="header-content">
+                <div>
+                  <mat-card-title>
+                    <mat-icon>card_giftcard</mat-icon>
+                    {{ reward.name }}
+                  </mat-card-title>
+                  <mat-card-subtitle>
+                    <mat-chip [color]="reward.isActive ? 'primary' : 'warn'">
+                      {{ reward.isActive ? 'Active' : 'Inactive' }}
+                    </mat-chip>
+                    <span class="category-badge">{{ getCategoryLabel(reward.category) }}</span>
+                  </mat-card-subtitle>
+                </div>
+                <div class="header-actions">
+                  <button mat-raised-button color="primary" (click)="editReward()">
+                    <mat-icon>edit</mat-icon>
+                    Edit Reward
+                  </button>
+                </div>
+              </div>
+            </mat-card-header>
+
+            <mat-divider></mat-divider>
+
+            <mat-card-content>
+              <div class="details-grid">
+                <div class="detail-item">
+                  <div class="detail-label">
+                    <mat-icon>description</mat-icon>
+                    Description
+                  </div>
+                  <div class="detail-value">{{ reward.description }}</div>
+                </div>
+
+                <div class="detail-item">
+                  <div class="detail-label">
+                    <mat-icon>stars</mat-icon>
+                    Points Required
+                  </div>
+                  <div class="detail-value highlight">{{ reward.pointsCost }} points</div>
+                </div>
+
+                <div class="detail-item">
+                  <div class="detail-label">
+                    <mat-icon>inventory</mat-icon>
+                    Stock Available
+                  </div>
+                  <div class="detail-value">{{ reward.stock }} units</div>
+                </div>
+
+                <div class="detail-item">
+                  <div class="detail-label">
+                    <mat-icon>event</mat-icon>
+                    Valid Until
+                  </div>
+                  <div class="detail-value">
+                    {{ reward.validUntil ? (reward.validUntil | date: 'mediumDate') : 'No expiration' }}
+                  </div>
+                </div>
+
+                <div class="detail-item">
+                  <div class="detail-label">
+                    <mat-icon>category</mat-icon>
+                    Category
+                  </div>
+                  <div class="detail-value">{{ getCategoryLabel(reward.category) }}</div>
+                </div>
+
+                <div class="detail-item">
+                  <div class="detail-label">
+                    <mat-icon>location_city</mat-icon>
+                    Municipality ID
+                  </div>
+                  <div class="detail-value">{{ reward.municipalityId || 'N/A' }}</div>
+                </div>
+              </div>
+
+              <mat-divider style="margin: 24px 0;"></mat-divider>
+
+              <div class="metadata">
+                <div class="metadata-item">
+                  <span class="metadata-label">Created:</span>
+                  <span class="metadata-value">{{ reward.createdAt | date: 'medium' }}</span>
+                </div>
+                <div class="metadata-item">
+                  <span class="metadata-label">Last Updated:</span>
+                  <span class="metadata-value">{{ reward.updatedAt | date: 'medium' }}</span>
+                </div>
+              </div>
+            </mat-card-content>
+
+            <mat-card-actions>
+              <button mat-button (click)="goBack()">
+                <mat-icon>arrow_back</mat-icon>
+                Back to Dashboard
+              </button>
+              <button mat-raised-button color="primary" (click)="editReward()">
+                <mat-icon>edit</mat-icon>
+                Edit Reward
+              </button>
+            </mat-card-actions>
+          </mat-card>
+        </div>
+      } @else {
+        <mat-card class="error-card">
+          <mat-card-content>
+            <div class="error-content">
+              <mat-icon>error_outline</mat-icon>
+              <h3>Reward not found</h3>
+              <p>The reward you're looking for doesn't exist or has been removed.</p>
+              <button mat-raised-button color="primary" (click)="goBack()">
+                <mat-icon>arrow_back</mat-icon>
+                Back to Dashboard
+              </button>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>
+

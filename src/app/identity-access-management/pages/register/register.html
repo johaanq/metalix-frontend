@@ -1,0 +1,346 @@
+<div class="register-container">
+  <!-- Left Side: Information -->
+  <div class="info-section">
+    <div class="info-content">
+      <div class="logo-wrapper">
+        <mat-icon class="logo-icon">recycling</mat-icon>
+        <h1 class="app-title">Metalix</h1>
+      </div>
+      <div class="info-text">
+        <h2 class="info-title">Únete a nosotros</h2>
+        <p class="info-description">
+          Crea tu cuenta y comienza a hacer la diferencia. Cada acción cuenta para construir un futuro más sostenible.
+        </p>
+      </div>
+      <div class="features">
+        <div class="feature-item">
+          <mat-icon class="feature-icon">verified</mat-icon>
+          <span>Registro rápido y sencillo</span>
+        </div>
+        <div class="feature-item">
+          <mat-icon class="feature-icon">security</mat-icon>
+          <span>Datos protegidos y seguros</span>
+        </div>
+        <div class="feature-item">
+          <mat-icon class="feature-icon">support_agent</mat-icon>
+          <span>Soporte disponible 24/7</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Side: Form -->
+  <div class="form-section">
+    <!-- Decorative Elements -->
+    <div class="decorative-shapes">
+      <div class="shape shape-1"></div>
+      <div class="shape shape-2"></div>
+      <div class="shape shape-3"></div>
+    </div>
+
+    <div class="form-wrapper">
+      <div class="form-card">
+        <!-- Account Type Selection -->
+        @if (!accountType) {
+        <div class="form-header">
+          <div class="form-badge">
+            <mat-icon class="badge-icon">person_add</mat-icon>
+            <span>Registro</span>
+          </div>
+          <h2 class="form-title">Crear Cuenta</h2>
+          <p class="form-subtitle">Selecciona el tipo de cuenta que deseas crear</p>
+        </div>
+
+        <div class="account-type-selection">
+          <button 
+            type="button"
+            class="account-type-card"
+            (click)="selectAccountType('citizen')">
+            <div class="account-type-icon">
+              <mat-icon>person</mat-icon>
+            </div>
+            <h3 class="account-type-title">Ciudadano</h3>
+            <p class="account-type-description">
+              Únete como ciudadano y comienza a ganar puntos por reciclar
+            </p>
+            <div class="account-type-features">
+              <div class="feature-badge">
+                <mat-icon>stars</mat-icon>
+                <span>Gana puntos</span>
+              </div>
+              <div class="feature-badge">
+                <mat-icon>card_giftcard</mat-icon>
+                <span>Canjea recompensas</span>
+              </div>
+            </div>
+            <div class="account-type-arrow">
+              <mat-icon>arrow_forward</mat-icon>
+            </div>
+          </button>
+
+          <button 
+            type="button"
+            class="account-type-card"
+            (click)="selectAccountType('municipality')">
+            <div class="account-type-icon municipality">
+              <mat-icon>account_balance</mat-icon>
+            </div>
+            <h3 class="account-type-title">Municipio</h3>
+            <p class="account-type-description">
+              Registra tu municipio y gestiona la recolección de residuos
+            </p>
+            <div class="account-type-features">
+              <div class="feature-badge">
+                <mat-icon>analytics</mat-icon>
+                <span>Reportes y estadísticas</span>
+              </div>
+              <div class="feature-badge">
+                <mat-icon>settings</mat-icon>
+                <span>Gestión completa</span>
+              </div>
+            </div>
+            <div class="account-type-arrow">
+              <mat-icon>arrow_forward</mat-icon>
+            </div>
+          </button>
+        </div>
+
+        <div class="form-footer">
+          <span class="footer-text">¿Ya tienes una cuenta?</span>
+          <button 
+            type="button"
+            (click)="navigateToLogin()"
+            class="footer-link">
+            Iniciar Sesión
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </div>
+        }
+
+        <!-- Citizen Registration Form -->
+        @if (accountType === 'citizen') {
+        <div class="form-header">
+          <button 
+            type="button"
+            (click)="goBackToSelection()"
+            class="back-button">
+            <mat-icon>arrow_back</mat-icon>
+            <span>Volver</span>
+          </button>
+          <div class="form-badge">
+            <mat-icon class="badge-icon">person</mat-icon>
+            <span>Registro Ciudadano</span>
+          </div>
+          <h2 class="form-title">Crear Cuenta de Ciudadano</h2>
+          <p class="form-subtitle">Únete a nuestra comunidad y comienza tu impacto positivo</p>
+        </div>
+        
+        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
+          <!-- Name Fields Row -->
+          <div class="form-row">
+            <div class="input-group glass-input half-width">
+              <div class="input-icon-wrapper">
+                <mat-icon class="input-icon">person</mat-icon>
+              </div>
+              <div class="input-content">
+                <label class="floating-label">Nombre</label>
+                <input 
+                  type="text"
+                  formControlName="firstName"
+                  placeholder=" "
+                  autocomplete="given-name"
+                  class="glass-input-field"
+                  [class.has-value]="registerForm.get('firstName')?.value && registerForm.get('firstName')?.value.length > 0">
+                @if (registerForm.get('firstName')?.touched && registerForm.get('firstName')?.errors) {
+                <span class="error-message">{{ getErrorMessage('firstName') }}</span>
+                }
+              </div>
+            </div>
+
+            <div class="input-group glass-input half-width">
+              <div class="input-icon-wrapper">
+                <mat-icon class="input-icon">person</mat-icon>
+              </div>
+              <div class="input-content">
+                <label class="floating-label">Apellido</label>
+                <input 
+                  type="text"
+                  formControlName="lastName"
+                  placeholder=" "
+                  autocomplete="family-name"
+                  class="glass-input-field"
+                  [class.has-value]="registerForm.get('lastName')?.value && registerForm.get('lastName')?.value.length > 0">
+                @if (registerForm.get('lastName')?.touched && registerForm.get('lastName')?.errors) {
+                <span class="error-message">{{ getErrorMessage('lastName') }}</span>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Email Field -->
+          <div class="input-group glass-input">
+            <div class="input-icon-wrapper">
+              <mat-icon class="input-icon">email</mat-icon>
+            </div>
+            <div class="input-content">
+              <label class="floating-label">Email</label>
+              <input 
+                type="email"
+                formControlName="email"
+                placeholder=" "
+                autocomplete="email"
+                class="glass-input-field"
+                [class.has-value]="registerForm.get('email')?.value && registerForm.get('email')?.value.length > 0">
+              @if (registerForm.get('email')?.touched && registerForm.get('email')?.errors) {
+              <span class="error-message">{{ getErrorMessage('email') }}</span>
+              }
+            </div>
+          </div>
+
+          <!-- Address Field -->
+          <div class="input-group glass-input">
+            <div class="input-icon-wrapper">
+              <mat-icon class="input-icon">home</mat-icon>
+            </div>
+            <div class="input-content">
+              <label class="floating-label">Dirección</label>
+              <input 
+                type="text"
+                formControlName="address"
+                placeholder=" "
+                autocomplete="street-address"
+                class="glass-input-field"
+                [class.has-value]="registerForm.get('address')?.value && registerForm.get('address')?.value.length > 0">
+              @if (registerForm.get('address')?.touched && registerForm.get('address')?.errors) {
+              <span class="error-message">{{ getErrorMessage('address') }}</span>
+              }
+            </div>
+          </div>
+
+          <!-- Municipality Field -->
+          <div class="input-group glass-input">
+            <div class="input-icon-wrapper">
+              <mat-icon class="input-icon">location_city</mat-icon>
+            </div>
+            <div class="input-content">
+              <label class="floating-label">Municipio</label>
+              <mat-select formControlName="municipalityId" class="glass-select">
+                @if (loadingMunicipalities) {
+                <mat-option disabled>
+                  <span style="display: flex; align-items: center; gap: 8px;">
+                    <mat-spinner diameter="16" style="display: inline-block;"></mat-spinner>
+                    Cargando municipios...
+                  </span>
+                </mat-option>
+                }
+                @if (!loadingMunicipalities && municipalities.length === 0) {
+                <mat-option disabled>
+                  No hay municipios disponibles
+                </mat-option>
+                }
+                @for (municipality of municipalities; track municipality.id) {
+                <mat-option [value]="municipality.id">
+                  {{ municipality.name }} - {{ municipality.region }}
+                </mat-option>
+                }
+              </mat-select>
+              @if (registerForm.get('municipalityId')?.touched && registerForm.get('municipalityId')?.errors) {
+              <span class="error-message">Por favor selecciona un municipio</span>
+              }
+            </div>
+          </div>
+
+          <!-- Password Field -->
+          <div class="input-group glass-input">
+            <div class="input-icon-wrapper">
+              <mat-icon class="input-icon">lock</mat-icon>
+            </div>
+            <div class="input-content">
+              <label class="floating-label">Contraseña</label>
+              <input 
+                [type]="hidePassword ? 'password' : 'text'"
+                formControlName="password"
+                placeholder=" "
+                autocomplete="new-password"
+                class="glass-input-field"
+                [class.has-value]="registerForm.get('password')?.value && registerForm.get('password')?.value.length > 0">
+              <button 
+                type="button"
+                (click)="togglePasswordVisibility()"
+                class="password-toggle-btn"
+                [attr.aria-label]="'Toggle password visibility'">
+                <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+              @if (registerForm.get('password')?.touched && registerForm.get('password')?.errors) {
+              <span class="error-message">{{ getErrorMessage('password') }}</span>
+              }
+            </div>
+          </div>
+
+          <!-- Confirm Password Field -->
+          <div class="input-group glass-input">
+            <div class="input-icon-wrapper">
+              <mat-icon class="input-icon">lock</mat-icon>
+            </div>
+            <div class="input-content">
+              <label class="floating-label">Confirmar Contraseña</label>
+              <input 
+                [type]="hideConfirmPassword ? 'password' : 'text'"
+                formControlName="confirmPassword"
+                placeholder=" "
+                autocomplete="new-password"
+                class="glass-input-field"
+                [class.has-value]="registerForm.get('confirmPassword')?.value && registerForm.get('confirmPassword')?.value.length > 0">
+              <button 
+                type="button"
+                (click)="toggleConfirmPasswordVisibility()"
+                class="password-toggle-btn"
+                [attr.aria-label]="'Toggle password visibility'">
+                <mat-icon>{{ hideConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+              @if (registerForm.get('confirmPassword')?.touched && registerForm.get('confirmPassword')?.errors) {
+              <span class="error-message">{{ getErrorMessage('confirmPassword') }}</span>
+              }
+            </div>
+          </div>
+
+          <!-- Register Button -->
+          <button 
+            type="submit"
+            class="submit-button"
+            [disabled]="isLoading || registerForm.invalid"
+            [class.loading]="isLoading">
+            @if (isLoading) {
+            <ng-container>
+              <div class="button-loader"></div>
+              <span>Creando cuenta...</span>
+            </ng-container>
+            }
+            @if (!isLoading) {
+            <ng-container>
+              <span>Crear Cuenta</span>
+              <div class="button-arrow">
+                <mat-icon>arrow_forward</mat-icon>
+              </div>
+            </ng-container>
+            }
+          </button>
+        </form>
+
+        <div class="form-footer">
+          <span class="footer-text">¿Ya tienes una cuenta?</span>
+          <button 
+            type="button"
+            (click)="navigateToLogin()"
+            [disabled]="isLoading"
+            class="footer-link">
+            Iniciar Sesión
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </div>
+        }
+
+      </div>
+    </div>
+  </div>
+</div>

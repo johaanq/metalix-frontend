@@ -1,0 +1,378 @@
+<mat-sidenav-container class="dashboard-container" [class.sidebar-collapsed]="!isSidenavOpen">
+  <!-- Sidebar Navigation -->
+  <mat-sidenav #sidenav 
+               [opened]="true" 
+               mode="side" 
+               class="dashboard-sidenav"
+               [class.collapsed]="!isSidenavOpen">
+    
+    <app-sidebar [currentUser]="currentUser" [isCollapsed]="!isSidenavOpen"></app-sidebar>
+  </mat-sidenav>
+
+  <!-- Main Content -->
+  <mat-sidenav-content class="dashboard-content">
+    <!-- Top Toolbar -->
+    <mat-toolbar class="dashboard-toolbar">
+      <button mat-icon-button (click)="toggleSidenav()">
+        <mat-icon>menu</mat-icon>
+      </button>
+      
+      <span class="toolbar-title">{{ showMunicipalitiesView() ? 'Municipalities Monitoring' : (getSelectedMunicipalityName() + ' Monitoring') }}</span>
+      
+      <span class="toolbar-spacer"></span>
+      
+      <div class="toolbar-actions">
+        @if (showMonitoringDetails()) {
+        <button 
+          mat-raised-button 
+          color="primary"
+          (click)="refreshData()"
+          [disabled]="isLoading">
+          @if (isLoading) {
+          <mat-spinner diameter="20"></mat-spinner>
+          }
+          @if (!isLoading) {
+          <mat-icon>refresh</mat-icon>
+          }
+          {{ isLoading ? 'Refreshing...' : 'Refresh Data' }}
+        </button>
+        }
+        <span class="welcome-text">Welcome, {{ currentUser?.firstName }}!</span>
+      </div>
+    </mat-toolbar>
+
+    <!-- Dashboard Content -->
+    <div class="main-content">
+      
+      <!-- VISTA 1: Municipalities List (Solo SYSTEM_ADMIN sin selección) -->
+      @if (showMunicipalitiesView()) {
+        
+        <!-- Loading Spinner -->
+        @if (isLoading) {
+          <div class="loading-container">
+            <mat-spinner></mat-spinner>
+            <p>Loading municipalities monitoring data...</p>
+          </div>
+        }
+        
+        @if (!isLoading) {
+          <div class="municipalities-header">
+            <div class="header-content">
+              <mat-icon class="header-icon">analytics</mat-icon>
+              <div>
+                <h2>Monitoreo de Municipalidades Costeras</h2>
+                <p>Selecciona una municipalidad para ver el monitoreo de sus recolectores en playas</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Municipalities Monitoring Grid -->
+          <div class="municipalities-grid">
+            @for (municipality of municipalityMonitoringData; track municipality.id) {
+              <mat-card 
+                class="municipality-card"
+                (click)="selectMunicipality(municipality)">
+                <mat-card-header>
+                  <div mat-card-avatar class="municipality-avatar">
+                    <mat-icon>analytics</mat-icon>
+                  </div>
+                  <mat-card-title>{{ municipality.name }}</mat-card-title>
+                  <mat-card-subtitle>
+                    <mat-chip [color]="municipality.status === 'Active' ? 'primary' : 'accent'" class="status-chip">
+                      <mat-icon matChipAvatar>{{ municipality.status === 'Active' ? 'check_circle' : 'error' }}</mat-icon>
+                      {{ municipality.status }}
+                    </mat-chip>
+                  </mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content>
+                  <div class="municipality-stats">
+                    <div class="stat">
+                      <mat-icon>warning</mat-icon>
+                      <span>{{ municipality.totalAlerts }} Total Alerts</span>
+                    </div>
+                    <div class="stat">
+                      <mat-icon>error</mat-icon>
+                      <span>{{ municipality.activeAlerts }} Active</span>
+                    </div>
+                    <div class="stat">
+                      <mat-icon>recycling</mat-icon>
+                      <span>{{ municipality.totalCollections }} Collections</span>
+                    </div>
+                    <div class="stat">
+                      <mat-icon>schedule</mat-icon>
+                      <span>{{ municipality.systemUptime }} Uptime</span>
+                    </div>
+                  </div>
+                  <div class="municipality-info">
+                    <div class="info-row">
+                      <span class="label">Region:</span>
+                      <span class="value">{{ municipality.region }}</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="label">Code:</span>
+                      <span class="value">{{ municipality.code }}</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="label">Last Updated:</span>
+                      <span class="value">{{ municipality.lastUpdated }}</span>
+                    </div>
+                  </div>
+                </mat-card-content>
+                <mat-card-actions>
+                  <button mat-button color="primary">
+                    <mat-icon>arrow_forward</mat-icon>
+                    View Monitoring Details
+                  </button>
+                </mat-card-actions>
+              </mat-card>
+            }
+          </div>
+        }
+      }
+
+      <!-- VISTA 2: Monitoring Details (MUNICIPALITY_ADMIN o SYSTEM_ADMIN con selección) -->
+      @if (showMonitoringDetails()) {
+        <!-- Back button for SYSTEM_ADMIN -->
+        @if (isSystemAdmin() && selectedMunicipality) {
+          <button 
+            mat-button 
+            (click)="backToMunicipalities()"
+            class="back-button">
+            <mat-icon>arrow_back</mat-icon>
+            Back to Municipalities
+          </button>
+        }
+
+        <!-- Monitoring Overview -->
+        <div class="system-overview">
+          <div class="overview-header">
+            <div class="overview-icon">
+              <mat-icon>analytics</mat-icon>
+            </div>
+            <div class="overview-info">
+              <h2>Monitoreo {{ getSelectedMunicipalityName() }}</h2>
+              <p>Rendimiento en tiempo real y análisis de recolectores en playas</p>
+            </div>
+            <div class="overview-status">
+              <mat-chip color="primary">
+                <mat-icon matChipAvatar>location_city</mat-icon>
+                Municipality Monitoring
+              </mat-chip>
+            </div>
+          </div>
+
+          <!-- System Stats -->
+          <div class="system-stats">
+            <div class="stat-item">
+              <div class="stat-icon primary">
+                <mat-icon>people</mat-icon>
+              </div>
+              <div class="stat-content">
+                <h3>{{ stats.totalUsers }}</h3>
+                <p>Total Users</p>
+              </div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-icon accent">
+                <mat-icon>person</mat-icon>
+              </div>
+              <div class="stat-content">
+                <h3>{{ stats.activeUsers }}</h3>
+                <p>Active Users</p>
+              </div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-icon primary">
+                <mat-icon>recycling</mat-icon>
+              </div>
+              <div class="stat-content">
+                <h3>{{ stats.totalCollections }}</h3>
+                <p>Total Collections</p>
+              </div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-icon accent">
+                <mat-icon>stars</mat-icon>
+              </div>
+              <div class="stat-content">
+                <h3>{{ stats.totalPointsDistributed }}</h3>
+                <p>Points Distributed</p>
+              </div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-icon primary">
+                <mat-icon>schedule</mat-icon>
+              </div>
+              <div class="stat-content">
+                <h3>{{ stats.systemUptime }}</h3>
+                <p>System Uptime</p>
+              </div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-icon accent">
+                <mat-icon>speed</mat-icon>
+              </div>
+              <div class="stat-content">
+                <h3>{{ stats.averageResponseTime }}</h3>
+                <p>Avg Response Time</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Performance Metrics -->
+        <div class="performance-metrics">
+          <h3>Métricas de Rendimiento</h3>
+          <div class="metrics-grid">
+            @for (metric of performanceMetrics; track metric.name) {
+            <div class="metric-card">
+              <div class="metric-header">
+                <div class="metric-icon">
+                  <mat-icon [color]="getTrendColor(metric.trend)">
+                    {{ metric.icon }}
+                  </mat-icon>
+                </div>
+                <div class="metric-change" [class]="getTrendColor(metric.trend)">
+                  {{ metric.change }}
+                </div>
+              </div>
+              <div class="metric-content">
+                <h3>{{ metric.value }}</h3>
+                <p>{{ metric.name }}</p>
+              </div>
+            </div>
+            }
+          </div>
+        </div>
+
+        <!-- Monitoring Content Tabs -->
+        <mat-tab-group class="monitoring-tabs">
+          <!-- System Alerts Tab -->
+          <mat-tab label="Alertas del Sistema">
+            <div class="tab-content">
+              <div class="alerts-list">
+                @for (alert of systemAlerts; track alert.id) {
+                <div class="alert-item"
+                     [class]="alert.severity">
+                  <div class="alert-icon">
+                    <mat-icon [color]="getAlertColor(alert.severity)">
+                      {{ getAlertIcon(alert.type) }}
+                    </mat-icon>
+                  </div>
+                  <div class="alert-content">
+                    <h4>{{ alert.message }}</h4>
+                    <p>{{ alert.timestamp }}</p>
+                  </div>
+                  <div class="alert-actions">
+                    <mat-chip [color]="getAlertColor(alert.severity)">
+                      {{ alert.severity | titlecase }}
+                    </mat-chip>
+                  </div>
+                </div>
+                }
+              </div>
+            </div>
+          </mat-tab>
+
+          <!-- User Activity Tab -->
+          <mat-tab label="Actividad de Bañistas">
+            <div class="tab-content">
+              <div class="user-activity-table">
+                @if (userActivityData.length > 0) {
+                <table mat-table [dataSource]="userActivityData" class="mat-elevation-z2">
+                  <ng-container matColumnDef="name">
+                    <th mat-header-cell *matHeaderCellDef>Name</th>
+                    <td mat-cell *matCellDef="let user">{{ user.name }}</td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="email">
+                    <th mat-header-cell *matHeaderCellDef>Email</th>
+                    <td mat-cell *matCellDef="let user">{{ user.email }}</td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="lastActivity">
+                    <th mat-header-cell *matHeaderCellDef>Last Activity</th>
+                    <td mat-cell *matCellDef="let user">{{ user.lastActivity }}</td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="collections">
+                    <th mat-header-cell *matHeaderCellDef>Collections</th>
+                    <td mat-cell *matCellDef="let user">{{ user.totalCollections }}</td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="points">
+                    <th mat-header-cell *matHeaderCellDef>Points</th>
+                    <td mat-cell *matCellDef="let user">
+                      <mat-chip color="primary">
+                        <mat-icon matChipAvatar>stars</mat-icon>
+                        {{ user.totalPoints }}
+                      </mat-chip>
+                    </td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="status">
+                    <th mat-header-cell *matHeaderCellDef>Status</th>
+                    <td mat-cell *matCellDef="let user">
+                      <mat-chip [color]="getStatusColor(user.status)">
+                        {{ user.status }}
+                      </mat-chip>
+                    </td>
+                  </ng-container>
+
+                  <tr mat-header-row *matHeaderRowDef="['name', 'email', 'lastActivity', 'collections', 'points', 'status']"></tr>
+                  <tr mat-row *matRowDef="let row; columns: ['name', 'email', 'lastActivity', 'collections', 'points', 'status'];"></tr>
+                </table>
+                } @else {
+                <div style="padding: 2rem; text-align: center;">
+                  <mat-icon style="font-size: 48px; height: 48px; width: 48px; color: #999;">inbox</mat-icon>
+                  <p style="color: #999;">No user activity data available</p>
+                </div>
+                }
+              </div>
+            </div>
+          </mat-tab>
+
+          <!-- Collection Analytics Tab -->
+          <mat-tab label="Análisis de Recolección">
+            <div class="tab-content">
+              <div class="analytics-grid">
+                @for (analytics of collectionAnalytics; track analytics.period) {
+                <mat-card class="analytics-card">
+                  <mat-card-header>
+                    <mat-card-title>{{ analytics.period }}</mat-card-title>
+                  </mat-card-header>
+                  <mat-card-content>
+                    <div class="analytics-stats">
+                      <div class="analytics-stat">
+                        <mat-icon>recycling</mat-icon>
+                        <div class="stat-info">
+                          <h4>{{ analytics.collections }}</h4>
+                          <p>Collections</p>
+                        </div>
+                      </div>
+                      <div class="analytics-stat">
+                        <mat-icon>stars</mat-icon>
+                        <div class="stat-info">
+                          <h4>{{ analytics.points }}</h4>
+                          <p>Points</p>
+                        </div>
+                      </div>
+                      <div class="analytics-stat">
+                        <mat-icon>scale</mat-icon>
+                        <div class="stat-info">
+                          <h4>{{ analytics.waste }} kg</h4>
+                          <p>Waste Collected</p>
+                        </div>
+                      </div>
+                    </div>
+                  </mat-card-content>
+                </mat-card>
+                }
+              </div>
+            </div>
+          </mat-tab>
+        </mat-tab-group>
+      }
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

@@ -1,0 +1,161 @@
+<mat-sidenav-container class="dashboard-container" [class.sidebar-collapsed]="!isSidenavOpen">
+  <!-- Sidebar Navigation -->
+  <mat-sidenav #sidenav 
+               [opened]="true" 
+               mode="side" 
+               class="dashboard-sidenav"
+               [class.collapsed]="!isSidenavOpen">
+    <app-sidebar [currentUser]="currentUser" [isCollapsed]="!isSidenavOpen"></app-sidebar>
+  </mat-sidenav>
+
+  <!-- Main Content -->
+  <mat-sidenav-content class="dashboard-content">
+    <!-- Top Toolbar -->
+    <mat-toolbar class="dashboard-toolbar">
+      <button mat-icon-button (click)="toggleSidenav()">
+        <mat-icon>menu</mat-icon>
+      </button>
+      
+      <span class="toolbar-title">{{ isEditMode ? 'Edit Reward' : 'Create Reward' }}</span>
+      
+      <span class="toolbar-spacer"></span>
+      
+      <div class="toolbar-actions">
+        <span class="welcome-text">Welcome, {{ currentUser?.firstName }}!</span>
+      </div>
+    </mat-toolbar>
+
+    <!-- Form Content -->
+    <div class="main-content">
+      <div class="form-container">
+        <mat-card class="form-card">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>{{ isEditMode ? 'edit' : 'add' }}</mat-icon>
+              {{ isEditMode ? 'Edit Reward' : 'Create New Reward' }}
+            </mat-card-title>
+            <mat-card-subtitle>
+              {{ isEditMode ? 'Update reward information' : 'Add a new reward for your municipality' }}
+            </mat-card-subtitle>
+          </mat-card-header>
+
+          <mat-card-content>
+            @if (isLoading) {
+              <div class="loading-container">
+                <mat-spinner diameter="40"></mat-spinner>
+                <p>Loading...</p>
+              </div>
+            } @else {
+              <form [formGroup]="rewardForm" (ngSubmit)="onSubmit()" class="reward-form">
+                <!-- Name Field -->
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Reward Name</mat-label>
+                  <input matInput formControlName="name" placeholder="e.g., Beach Access Pass">
+                  <mat-icon matPrefix>card_giftcard</mat-icon>
+                  @if (rewardForm.get('name')?.hasError('required') && rewardForm.get('name')?.touched) {
+                    <mat-error>Name is required</mat-error>
+                  }
+                  @if (rewardForm.get('name')?.hasError('minlength') && rewardForm.get('name')?.touched) {
+                    <mat-error>Name must be at least 3 characters</mat-error>
+                  }
+                </mat-form-field>
+
+                <!-- Description Field -->
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Description</mat-label>
+                  <textarea matInput formControlName="description" rows="4" placeholder="Describe the reward..."></textarea>
+                  <mat-icon matPrefix>description</mat-icon>
+                  @if (rewardForm.get('description')?.hasError('required') && rewardForm.get('description')?.touched) {
+                    <mat-error>Description is required</mat-error>
+                  }
+                  @if (rewardForm.get('description')?.hasError('minlength') && rewardForm.get('description')?.touched) {
+                    <mat-error>Description must be at least 10 characters</mat-error>
+                  }
+                </mat-form-field>
+
+                <div class="form-row">
+                  <!-- Points Cost Field -->
+                  <mat-form-field appearance="outline" class="half-width">
+                    <mat-label>Points Required</mat-label>
+                    <input matInput type="number" formControlName="pointsCost" placeholder="0">
+                    <mat-icon matPrefix>stars</mat-icon>
+                    @if (rewardForm.get('pointsCost')?.hasError('required') && rewardForm.get('pointsCost')?.touched) {
+                      <mat-error>Points cost is required</mat-error>
+                    }
+                    @if (rewardForm.get('pointsCost')?.hasError('min') && rewardForm.get('pointsCost')?.touched) {
+                      <mat-error>Points cost must be at least 1</mat-error>
+                    }
+                  </mat-form-field>
+
+                  <!-- Stock Field -->
+                  <mat-form-field appearance="outline" class="half-width">
+                    <mat-label>Stock</mat-label>
+                    <input matInput type="number" formControlName="stock" placeholder="0">
+                    <mat-icon matPrefix>inventory</mat-icon>
+                    @if (rewardForm.get('stock')?.hasError('required') && rewardForm.get('stock')?.touched) {
+                      <mat-error>Stock is required</mat-error>
+                    }
+                    @if (rewardForm.get('stock')?.hasError('min') && rewardForm.get('stock')?.touched) {
+                      <mat-error>Stock cannot be negative</mat-error>
+                    }
+                  </mat-form-field>
+                </div>
+
+                <div class="form-row">
+                  <!-- Category Field -->
+                  <mat-form-field appearance="outline" class="half-width">
+                    <mat-label>Category</mat-label>
+                    <mat-select formControlName="category">
+                      @for (cat of categories; track cat.value) {
+                        <mat-option [value]="cat.value">{{ cat.label }}</mat-option>
+                      }
+                    </mat-select>
+                    <mat-icon matPrefix>category</mat-icon>
+                    @if (rewardForm.get('category')?.hasError('required') && rewardForm.get('category')?.touched) {
+                      <mat-error>Category is required</mat-error>
+                    }
+                  </mat-form-field>
+
+                  <!-- Valid Until Field -->
+                  <mat-form-field appearance="outline" class="half-width">
+                    <mat-label>Valid Until</mat-label>
+                    <input matInput [matDatepicker]="picker" formControlName="validUntil">
+                    <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                    <mat-datepicker #picker></mat-datepicker>
+                    <mat-icon matPrefix>event</mat-icon>
+                    @if (rewardForm.get('validUntil')?.hasError('required') && rewardForm.get('validUntil')?.touched) {
+                      <mat-error>Valid until date is required</mat-error>
+                    }
+                  </mat-form-field>
+                </div>
+
+                <!-- Active Status -->
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Status</mat-label>
+                  <mat-select formControlName="isActive">
+                    <mat-option [value]="true">Active</mat-option>
+                    <mat-option [value]="false">Inactive</mat-option>
+                  </mat-select>
+                  <mat-icon matPrefix>toggle_on</mat-icon>
+                </mat-form-field>
+
+                <!-- Form Actions -->
+                <div class="form-actions">
+                  <button mat-button type="button" (click)="cancel()" [disabled]="isLoading">
+                    <mat-icon>close</mat-icon>
+                    Cancel
+                  </button>
+                  <button mat-raised-button color="primary" type="submit" [disabled]="rewardForm.invalid || isLoading">
+                    <mat-icon>{{ isEditMode ? 'save' : 'add' }}</mat-icon>
+                    {{ isEditMode ? 'Update Reward' : 'Create Reward' }}
+                  </button>
+                </div>
+              </form>
+            }
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>
+

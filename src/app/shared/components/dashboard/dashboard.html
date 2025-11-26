@@ -1,0 +1,549 @@
+<mat-sidenav-container class="dashboard-container" [class.sidebar-collapsed]="!isSidenavOpen">
+  <!-- Sidebar Navigation -->
+  <mat-sidenav #sidenav 
+               [opened]="true" 
+               mode="side" 
+               class="dashboard-sidenav"
+               [class.collapsed]="!isSidenavOpen">
+    <app-sidebar [currentUser]="currentUser" [isCollapsed]="!isSidenavOpen"></app-sidebar>
+  </mat-sidenav>
+
+  <!-- Main Content -->
+  <mat-sidenav-content class="dashboard-content">
+    <!-- Top Toolbar -->
+    <mat-toolbar class="dashboard-toolbar">
+      <button mat-icon-button (click)="toggleSidenav()">
+        <mat-icon>menu</mat-icon>
+      </button>
+      
+      <span class="toolbar-title">Dashboard</span>
+      
+      <span class="toolbar-spacer"></span>
+      
+      <div class="toolbar-actions">
+        <span class="welcome-text">Welcome, {{ currentUser?.firstName }}!</span>
+      </div>
+    </mat-toolbar>
+
+    <!-- Dashboard Content -->
+    <div class="main-content">
+      
+      <!-- ADMIN DASHBOARD with Filters and Analytics -->
+      @if (isAdmin()) {
+        <!-- Filters Section -->
+        <div class="filters-section">
+          <div class="filters-header">
+            <div>
+              <h2>Panel de Análisis</h2>
+              <p>Vista completa del rendimiento del sistema de recolección en playas</p>
+            </div>
+            <div class="filter-actions">
+              <button mat-raised-button color="primary" (click)="applyFilters()">
+                <mat-icon>filter_list</mat-icon>
+                Apply Filters
+              </button>
+              <button mat-stroked-button (click)="clearFilters()">
+                <mat-icon>clear</mat-icon>
+                Clear
+              </button>
+            </div>
+          </div>
+          
+          <div class="filters-grid">
+            <!-- System Admin: Municipality Filter -->
+            @if (isSystemAdmin()) {
+            <div class="input-group glass-input">
+              <div class="input-icon-wrapper">
+                <mat-icon class="input-icon">location_city</mat-icon>
+              </div>
+              <div class="input-content">
+                <label class="floating-label">Municipality</label>
+                <mat-select [(ngModel)]="selectedMunicipalityId" class="glass-select" placeholder="All Municipalities">
+                  <mat-option value="all">All Municipalities</mat-option>
+                  @for (municipality of municipalities; track municipality.id) {
+                  <mat-option [value]="municipality.id">
+                    {{ municipality.name }}
+                  </mat-option>
+                  }
+                </mat-select>
+              </div>
+            </div>
+
+            <div class="input-group glass-input">
+              <div class="input-icon-wrapper">
+                <mat-icon class="input-icon">map</mat-icon>
+              </div>
+              <div class="input-content">
+                <label class="floating-label">Region</label>
+                <mat-select [(ngModel)]="selectedRegion" class="glass-select" placeholder="All Regions">
+                  @for (region of regions; track region) {
+                  <mat-option [value]="region">
+                    {{ region === 'all' ? 'All Regions' : region }}
+                  </mat-option>
+                  }
+                </mat-select>
+              </div>
+            </div>
+            }
+
+            <!-- Municipality Admin: Collection Point Filter -->
+            @if (isMunicipalityAdmin()) {
+            <div class="input-group glass-input">
+              <div class="input-icon-wrapper">
+                <mat-icon class="input-icon">place</mat-icon>
+              </div>
+              <div class="input-content">
+                <label class="floating-label">Collection Point / Sede</label>
+                <mat-select [(ngModel)]="selectedCollectionPointId" class="glass-select" placeholder="All Collection Points">
+                  <mat-option value="all">All Collection Points</mat-option>
+                  @for (cp of collectionPoints; track cp.id) {
+                  <mat-option [value]="cp.id">
+                    {{ cp.name }}
+                  </mat-option>
+                  }
+                </mat-select>
+              </div>
+            </div>
+
+            <div class="input-group glass-input">
+              <div class="input-icon-wrapper">
+                <mat-icon class="input-icon">map</mat-icon>
+              </div>
+              <div class="input-content">
+                <label class="floating-label">Zone</label>
+                <mat-select [(ngModel)]="selectedRegion" class="glass-select" placeholder="All Zones">
+                  @for (zone of zones; track zone) {
+                  <mat-option [value]="zone">
+                    {{ zone === 'all' ? 'All Zones' : 'Zone ' + zone }}
+                  </mat-option>
+                  }
+                </mat-select>
+              </div>
+            </div>
+            }
+
+            <div class="input-group glass-input">
+              <div class="input-icon-wrapper">
+                <mat-icon class="input-icon">recycling</mat-icon>
+              </div>
+              <div class="input-content">
+                <label class="floating-label">Material Type</label>
+                <mat-select [(ngModel)]="selectedMaterialType" class="glass-select" placeholder="All Materials">
+                  @for (material of materialTypes; track material) {
+                  <mat-option [value]="material">
+                    {{ getMaterialTypeLabel(material) }}
+                  </mat-option>
+                  }
+                </mat-select>
+              </div>
+            </div>
+
+            <div class="input-group glass-input">
+              <div class="input-icon-wrapper">
+                <mat-icon class="input-icon">calendar_today</mat-icon>
+              </div>
+              <div class="input-content">
+                <label class="floating-label">Date Range</label>
+                <mat-date-range-input [rangePicker]="picker" class="glass-date-input">
+                  <input matStartDate [(ngModel)]="startDate" placeholder="Start date" class="glass-input-field">
+                  <input matEndDate [(ngModel)]="endDate" placeholder="End date" class="glass-input-field">
+                </mat-date-range-input>
+                <mat-datepicker-toggle matIconPrefix [for]="picker"></mat-datepicker-toggle>
+                <mat-date-range-picker #picker></mat-date-range-picker>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Loading Spinner -->
+        @if (isLoading) {
+          <div class="loading-container">
+            <mat-spinner></mat-spinner>
+            <p>Loading dashboard data...</p>
+          </div>
+        }
+
+        <!-- Aggregated Stats Cards -->
+        @if (!isLoading) {
+          <div class="stats-grid">
+            <!-- System Admin: Total Municipalities / Municipality Admin: Collection Points -->
+            <div class="stat-card">
+              <div class="stat-header">
+                <div class="stat-icon primary">
+                  <mat-icon>{{ isSystemAdmin() ? 'location_city' : 'place' }}</mat-icon>
+                </div>
+                <div class="stat-change positive">Active</div>
+              </div>
+              <h3 class="stat-value">{{ isSystemAdmin() ? aggregatedStats.totalMunicipalities : collectionPoints.length }}</h3>
+              <p class="stat-label">{{ isSystemAdmin() ? 'Municipalidades Costeras' : 'Recolectores en Playas' }}</p>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <div class="stat-icon accent">
+                  <mat-icon>people</mat-icon>
+                </div>
+                <div class="stat-change positive">+5%</div>
+              </div>
+              <h3 class="stat-value">{{ aggregatedStats.totalCitizens | number }}</h3>
+              <p class="stat-label">Total Bañistas</p>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <div class="stat-icon primary">
+                  <mat-icon>recycling</mat-icon>
+                </div>
+                <div class="stat-change positive">+12%</div>
+              </div>
+              <h3 class="stat-value">{{ aggregatedStats.totalCollections | number }}</h3>
+              <p class="stat-label">Recolecciones Totales</p>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <div class="stat-icon accent">
+                  <mat-icon>scale</mat-icon>
+                </div>
+                <div class="stat-change positive">+8%</div>
+              </div>
+              <h3 class="stat-value">{{ aggregatedStats.totalWasteCollected | number }}</h3>
+              <p class="stat-label">Residuos Recolectados (kg)</p>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <div class="stat-icon primary">
+                  <mat-icon>stars</mat-icon>
+                </div>
+                <div class="stat-change positive">+10%</div>
+              </div>
+              <h3 class="stat-value">{{ aggregatedStats.totalPointsDistributed | number }}</h3>
+              <p class="stat-label">Puntos Distribuidos</p>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <div class="stat-icon accent">
+                  <mat-icon>warning</mat-icon>
+                </div>
+                <div class="stat-change" [class.positive]="aggregatedStats.activeAlerts === 0" [class.negative]="aggregatedStats.activeAlerts > 0">
+                  {{ aggregatedStats.activeAlerts === 0 ? 'None' : aggregatedStats.activeAlerts }}
+                </div>
+              </div>
+              <h3 class="stat-value">{{ aggregatedStats.activeAlerts }}</h3>
+              <p class="stat-label">Active Alerts</p>
+            </div>
+          </div>
+        }
+      }
+
+      <!-- CITIZEN DASHBOARD (Original) -->
+      @if (isCitizen()) {
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-header">
+            <div class="stat-icon primary">
+              <mat-icon>stars</mat-icon>
+            </div>
+            <div class="stat-change positive">+12%</div>
+          </div>
+          <h3 class="stat-value">{{ citizenStats.totalPoints }}</h3>
+          <p class="stat-label">Puntos Totales</p>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-header">
+            <div class="stat-icon accent">
+              <mat-icon>recycling</mat-icon>
+            </div>
+            <div class="stat-change positive">+8%</div>
+          </div>
+          <h3 class="stat-value">{{ citizenStats.wasteCollected }}</h3>
+          <p class="stat-label">Residuos Recolectados (kg)</p>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-header">
+            <div class="stat-icon primary">
+              <mat-icon>card_giftcard</mat-icon>
+            </div>
+            <div class="stat-change positive">+5%</div>
+          </div>
+          <h3 class="stat-value">{{ citizenStats.rewardsEarned }}</h3>
+          <p class="stat-label">Recompensas Obtenidas</p>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-header">
+            <div class="stat-icon accent">
+              <mat-icon>eco</mat-icon>
+            </div>
+            <div class="stat-change positive">+15%</div>
+          </div>
+          <h3 class="stat-value">{{ citizenStats.environmentalImpact }}</h3>
+          <p class="stat-label">CO₂ Ahorrado (kg)</p>
+        </div>
+      </div>
+
+      <!-- Recent Activity -->
+      <div class="recent-activity">
+        <h3>Actividad Reciente</h3>
+        
+        <div class="activity-item">
+          <div class="activity-icon">
+            <mat-icon>recycling</mat-icon>
+          </div>
+          <div class="activity-content">
+            <h4 class="activity-title">Residuos de metal recolectados en playa</h4>
+            <p class="activity-time">Hace 2 horas</p>
+          </div>
+        </div>
+        
+        <div class="activity-item">
+          <div class="activity-icon">
+            <mat-icon>card_giftcard</mat-icon>
+          </div>
+          <div class="activity-content">
+            <h4 class="activity-title">Recompensa canjeada</h4>
+            <p class="activity-time">Hace 1 día</p>
+          </div>
+        </div>
+        
+        <div class="activity-item">
+          <div class="activity-icon">
+            <mat-icon>eco</mat-icon>
+          </div>
+          <div class="activity-content">
+            <h4 class="activity-title">Impacto ambiental logrado</h4>
+            <p class="activity-time">Hace 3 días</p>
+          </div>
+        </div>
+      </div>
+      }
+
+      <!-- Analytics Visualizations for Admins -->
+      @if (isAdmin() && !isLoading) {
+        <mat-tab-group class="analytics-tabs">
+          <!-- Top Municipalities (System Admin) / Top Collection Points (Municipality Admin) -->
+          <mat-tab [label]="isSystemAdmin() ? 'Top Municipalidades' : 'Top Recolectores en Playas'">
+            <div class="tab-content">
+              <!-- System Admin: Top Municipalities -->
+              @if (isSystemAdmin()) {
+              <div class="ranking-list">
+                @for (municipality of topMunicipalities; track municipality.name; let i = $index) {
+                <div class="ranking-item">
+                  <div class="rank-badge" [class.gold]="i === 0" [class.silver]="i === 1" [class.bronze]="i === 2">
+                    {{ i + 1 }}
+                  </div>
+                  <div class="ranking-info">
+                    <h4>{{ municipality.name }}</h4>
+                    <div class="ranking-stats">
+                      <div class="ranking-stat">
+                        <mat-icon>recycling</mat-icon>
+                        <span>{{ municipality.collections | number }} collections</span>
+                      </div>
+                      <div class="ranking-stat">
+                        <mat-icon>scale</mat-icon>
+                        <span>{{ municipality.waste | number }} kg</span>
+                      </div>
+                      <div class="ranking-stat">
+                        <mat-icon>people</mat-icon>
+                        <span>{{ municipality.citizens | number }} citizens</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="participation-badge">
+                    <mat-icon>trending_up</mat-icon>
+                    {{ municipality.participation }}%
+                  </div>
+                </div>
+                }
+              </div>
+              }
+              
+              <!-- Municipality Admin: Top Collection Points -->
+              @if (isMunicipalityAdmin()) {
+              <div class="ranking-list">
+                @for (cp of topCollectionPoints; track cp.name; let i = $index) {
+                <div class="ranking-item">
+                  <div class="rank-badge" [class.gold]="i === 0" [class.silver]="i === 1" [class.bronze]="i === 2">
+                    {{ i + 1 }}
+                  </div>
+                  <div class="ranking-info">
+                    <h4>{{ cp.name }}</h4>
+                    <div class="ranking-stats">
+                      <div class="ranking-stat">
+                        <mat-icon>recycling</mat-icon>
+                        <span>{{ cp.collections | number }} collections</span>
+                      </div>
+                      <div class="ranking-stat">
+                        <mat-icon>scale</mat-icon>
+                        <span>{{ cp.waste | number }} kg</span>
+                      </div>
+                      <div class="ranking-stat">
+                        <mat-icon>place</mat-icon>
+                        <span>{{ cp.location }}</span>
+                      </div>
+                      <div class="ranking-stat">
+                        <mat-icon [style.color]="cp.status === 'ACTIVE' ? '#4CAF50' : '#f44336'">
+                          {{ cp.status === 'ACTIVE' ? 'check_circle' : 'error' }}
+                        </mat-icon>
+                        <span>{{ cp.status }}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="participation-badge">
+                    <mat-icon>trending_up</mat-icon>
+                    {{ cp.participation }}%
+                  </div>
+                </div>
+                }
+              </div>
+              }
+            </div>
+          </mat-tab>
+
+          <!-- Material Distribution -->
+          <mat-tab label="Distribución de Materiales">
+            <div class="tab-content">
+              <div class="material-distribution">
+                @for (material of materialDistribution; track material.type) {
+                <div class="material-card">
+                  <div class="material-header">
+                    <mat-icon>{{ material.type === 'METAL' ? 'hardware' : (material.type === 'PLASTIC' ? 'water_drop' : (material.type === 'PAPER' ? 'description' : 'grade')) }}</mat-icon>
+                    <h4>{{ material.type }}</h4>
+                  </div>
+                  <div class="material-stats">
+                    <div class="percentage-display">
+                      <span class="percentage-value">{{ material.percentage }}%</span>
+                    </div>
+                    <div class="material-weight">
+                      <span class="weight-value">{{ material.weight | number }}</span>
+                      <span class="weight-unit">kg</span>
+                    </div>
+                  </div>
+                  <div class="progress-bar">
+                    <div class="progress-fill" [style.width.%]="material.percentage"></div>
+                  </div>
+                </div>
+                }
+              </div>
+            </div>
+          </mat-tab>
+
+          <!-- Regional Performance (System Admin) / Zone Performance (Municipality Admin) -->
+          <mat-tab [label]="isSystemAdmin() ? 'Rendimiento Regional' : 'Rendimiento por Zona'">
+            <div class="tab-content">
+              <div class="regional-grid">
+                @for (region of regionalPerformance; track region.region) {
+                <mat-card class="regional-card">
+                  <mat-card-header>
+                    <div mat-card-avatar class="regional-avatar">
+                      <mat-icon>{{ isSystemAdmin() ? 'map' : 'location_on' }}</mat-icon>
+                    </div>
+                    <mat-card-title>{{ region.region }}</mat-card-title>
+                    <mat-card-subtitle>
+                      {{ region.municipalities }} {{ isSystemAdmin() ? 'municipalities' : 'collection points' }}
+                    </mat-card-subtitle>
+                  </mat-card-header>
+                  <mat-card-content>
+                    <div class="regional-stats">
+                      <div class="regional-stat">
+                        <mat-icon>recycling</mat-icon>
+                        <div>
+                          <span class="value">{{ region.collections | number }}</span>
+                          <span class="label">Collections</span>
+                        </div>
+                      </div>
+                      <div class="regional-stat">
+                        <mat-icon>scale</mat-icon>
+                        <div>
+                          <span class="value">{{ region.waste | number }}</span>
+                          <span class="label">Waste (kg)</span>
+                        </div>
+                      </div>
+                    </div>
+                  </mat-card-content>
+                </mat-card>
+                }
+              </div>
+            </div>
+          </mat-tab>
+
+          <!-- Collection Trends -->
+          <mat-tab label="Tendencias de Recolección">
+            <div class="tab-content">
+              <div class="chart-container">
+                <h3>Weekly Collection Trends</h3>
+                <div class="bar-chart">
+                  @for (trend of collectionTrends; track trend.day) {
+                  <div class="bar-item">
+                    <div class="bar-wrapper">
+                      <div class="bar" [style.height.%]="(trend.collections / 700) * 100"></div>
+                    </div>
+                    <div class="bar-label">{{ trend.day }}</div>
+                    <div class="bar-value">{{ trend.collections }}</div>
+                  </div>
+                  }
+                </div>
+              </div>
+      </div>
+          </mat-tab>
+        </mat-tab-group>
+      }
+
+      <!-- Quick Actions -->
+      <div class="quick-actions">
+        <h3>Quick Actions</h3>
+        <div class="actions-grid">
+          @for (action of quickActions; track action.route) {
+          <div 
+            class="action-button"
+            [routerLink]="action.route">
+            <mat-icon>{{ action.icon }}</mat-icon>
+            <span>{{ action.title }}</span>
+          </div>
+          }
+        </div>
+      </div>
+
+      <!-- Recent Activity - Only for Citizens -->
+      @if (isCitizen()) {
+      <div class="recent-activity">
+        <h3>Actividad Reciente</h3>
+        
+        <div class="activity-item">
+          <div class="activity-icon">
+            <mat-icon>recycling</mat-icon>
+          </div>
+          <div class="activity-content">
+            <h4 class="activity-title">Residuos de metal recolectados en playa</h4>
+            <p class="activity-time">Hace 2 horas</p>
+          </div>
+        </div>
+        
+        <div class="activity-item">
+          <div class="activity-icon">
+            <mat-icon>card_giftcard</mat-icon>
+          </div>
+          <div class="activity-content">
+            <h4 class="activity-title">Recompensa canjeada</h4>
+            <p class="activity-time">Hace 1 día</p>
+          </div>
+        </div>
+        
+        <div class="activity-item">
+          <div class="activity-icon">
+            <mat-icon>eco</mat-icon>
+          </div>
+          <div class="activity-content">
+            <h4 class="activity-title">Impacto ambiental logrado</h4>
+            <p class="activity-time">Hace 3 días</p>
+          </div>
+        </div>
+      </div>
+      }
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>
