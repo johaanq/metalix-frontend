@@ -82,13 +82,13 @@ export class AuthService {
         // Guardar el token INMEDIATAMENTE para que el interceptor lo use en la siguiente petición
         localStorage.setItem('auth_token', authResponse.token);
         
-        // Intentar obtener el usuario completo usando el endpoint /profile primero
-        // Si falla, intentar con el endpoint directo /users/{id}
+        // Intentar obtener el usuario completo usando el endpoint directo /users/{id} primero
+        // Si falla, intentar con el endpoint /profile
         // Si ambos fallan, construir un usuario básico desde la respuesta del login
-        return this.http.get<any>(`${environment.apiUrl}${environment.endpoints.users}/${authResponse.userId}/profile`).pipe(
+        return this.http.get<any>(`${environment.apiUrl}${environment.endpoints.users}/${authResponse.userId}`).pipe(
           catchError(() => {
-            // Si /profile falla, intentar con el endpoint directo
-            return this.http.get<any>(`${environment.apiUrl}${environment.endpoints.users}/${authResponse.userId}`).pipe(
+            // Si el endpoint directo falla, intentar con /profile
+            return this.http.get<any>(`${environment.apiUrl}${environment.endpoints.users}/${authResponse.userId}/profile`).pipe(
               catchError(() => {
                 // Si ambos fallan, construir usuario básico desde AuthenticationResponse
                 const basicUser: User = {
