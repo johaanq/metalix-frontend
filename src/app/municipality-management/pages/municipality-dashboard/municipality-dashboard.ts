@@ -437,6 +437,9 @@ export class MunicipalityDashboard implements OnInit, OnDestroy {
         };
         
         // TODO: Add createWasteCollector method to WasteCollectionService
+        // Log the data being sent for debugging
+        console.log('Creating collection point with data:', newCollector);
+        
         // For now, using HTTP directly
         this.http.post<any>(`${environment.apiUrl}${environment.endpoints.wasteCollectors}`, newCollector).subscribe({
           next: (collector) => {
