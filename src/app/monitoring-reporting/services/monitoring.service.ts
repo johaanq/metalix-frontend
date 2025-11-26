@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
 export interface Report {
@@ -146,6 +146,26 @@ export class MonitoringService {
           lastUpdated: dashboard.lastUpdated || new Date().toISOString()
         };
         return dashboardData;
+      }),
+      catchError((error: any) => {
+        console.warn('Error loading dashboard data, using defaults:', error);
+        // Retornar datos por defecto cuando el endpoint falla
+        const defaultData: DashboardData = {
+          municipalityId: municipalityId,
+          totalCollections: 0,
+          totalWeight: 0,
+          activeUsers: 0,
+          totalPoints: 0,
+          environmentalImpact: {
+            co2Saved: 0,
+            energySaved: 0,
+            treesEquivalent: 0
+          },
+          recentAlerts: [],
+          topCollectors: [],
+          lastUpdated: new Date().toISOString()
+        };
+        return of(defaultData);
       })
     );
   }

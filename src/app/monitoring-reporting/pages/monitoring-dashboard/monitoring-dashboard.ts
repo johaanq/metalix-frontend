@@ -315,7 +315,14 @@ export class MonitoringDashboard implements OnInit, OnDestroy {
           // Load collection analytics
           this.loadCollectionAnalytics(municipalityId);
         },
-        error: (error) => console.error('Error loading dashboard data:', error)
+        error: (error) => {
+          console.warn('Error loading dashboard data, using defaults:', error);
+          // Los valores por defecto ya están establecidos, solo mostramos un mensaje si es necesario
+          if (error.status !== 500) {
+            // Solo mostrar error si no es un 500 (error del servidor)
+            this.snackBar.open('Error al cargar datos del dashboard. Mostrando valores por defecto.', 'Cerrar', { duration: 3000 });
+          }
+        }
       });
     } else {
       // Load collection analytics without municipality filter
