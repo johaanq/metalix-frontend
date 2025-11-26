@@ -422,18 +422,24 @@ export class MunicipalityDashboard implements OnInit, OnDestroy {
         this.isLoading = true;
         
         // Create collector via backend
+        // Format location as string (address) for backend compatibility
+        const locationString = result.address || 
+          (result.latitude && result.longitude ? 
+            `${result.latitude}, ${result.longitude}` : '');
+        
         const newCollector = {
           municipalityId: this.selectedMunicipality.id,
-          zoneId: result.zoneId || null,
+          zoneId: result.zoneId ? parseInt(result.zoneId) : null,
           name: result.name,
-          location: {
+          location: locationString, // Backend expects String, not object
+          locationData: { // Also send as object for flexibility
             latitude: result.latitude || 0,
             longitude: result.longitude || 0,
-            address: result.address
+            address: result.address || locationString
           },
-          status: result.status === 'Active' ? 'ACTIVE' : 'INACTIVE',
-          capacity: parseInt(result.capacity) || 100,
-          currentWeight: 0
+          type: 'GENERAL', // Default type if not specified
+          capacity: parseFloat(result.capacity) || 100.0, // Backend expects Double
+          sensorId: null
         };
         
         // TODO: Add createWasteCollector method to WasteCollectionService
