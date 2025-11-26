@@ -455,15 +455,31 @@ export class MunicipalityDashboard implements OnInit, OnDestroy {
               }
             );
           },
-          error: (error) => {
+          error: (error: any) => {
             console.error('Error creating collection point:', error);
             this.isLoading = false;
+            
+            // Determinar mensaje de error más específico
+            let errorMessage = 'Error al crear el punto de recolección. Por favor, intente nuevamente.';
+            
+            if (error.status === 400) {
+              errorMessage = error.error?.message || 'Datos inválidos. Por favor, verifique la información ingresada.';
+            } else if (error.status === 403) {
+              errorMessage = 'No tiene permisos para crear puntos de recolección.';
+            } else if (error.status === 500) {
+              errorMessage = 'Error del servidor al crear el punto de recolección. Por favor, intente más tarde o contacte al administrador.';
+            } else if (error.status === 0 || !error.status) {
+              errorMessage = 'Error de conexión. Por favor, verifique su conexión a internet.';
+            }
+            
             this.snackBar.open(
-              'Error creating collection point. Please try again.',
-              'Close',
+              errorMessage,
+              'Cerrar',
               {
-                duration: 3000,
-                panelClass: ['error-snackbar']
+                duration: 5000,
+                panelClass: ['error-snackbar'],
+                horizontalPosition: 'center',
+                verticalPosition: 'top'
               }
             );
           }
