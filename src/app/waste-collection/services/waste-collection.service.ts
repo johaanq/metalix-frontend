@@ -107,7 +107,7 @@ export class WasteCollectionService {
   }
 
   private mapWasteCollectorResponse(c: any): WasteCollector {
-    return {
+        return {
       id: c.id?.toString() || '',
       municipalityId: c.municipalityId?.toString() || '',
       zoneId: c.zoneId?.toString() || '',
@@ -116,7 +116,7 @@ export class WasteCollectionService {
         latitude: 0,
         longitude: 0,
         address: ''
-      },
+          },
       status: c.status || 'ACTIVE',
       capacity: c.capacity || 0,
       currentWeight: c.currentWeight || 0,

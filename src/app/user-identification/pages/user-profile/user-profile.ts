@@ -115,7 +115,7 @@ export class UserProfile implements OnInit, OnDestroy {
       // Load sidebar state from localStorage
       const savedSidebarState = localStorage.getItem('sidebarCollapsed');
       this.isSidenavOpen = savedSidebarState !== 'true';
-
+      
       this.loadProfileData();
     });
   }
@@ -239,26 +239,26 @@ export class UserProfile implements OnInit, OnDestroy {
     
     this.userIdentificationService.updateUserProfile(this.currentUser.id, updateData).subscribe({
       next: (updatedProfile) => {
-        this.isLoading = false;
-        this.isEditing = false;
+      this.isLoading = false;
+      this.isEditing = false;
         
-        // Update current user data
-        if (this.currentUser) {
+      // Update current user data
+      if (this.currentUser) {
           this.currentUser.firstName = updatedProfile.firstName;
           this.currentUser.lastName = updatedProfile.lastName;
           this.currentUser.phone = updatedProfile.phone;
           this.currentUser.address = updatedProfile.address;
           this.currentUser.city = updatedProfile.city;
           this.currentUser.zipCode = updatedProfile.zipCode;
-          
-          // Update localStorage
-          localStorage.setItem('current_user', JSON.stringify(this.currentUser));
-          
-          // Update the auth service
-          this.authService['currentUserSubject'].next(this.currentUser);
-          
-          console.log('Profile saved successfully:', this.currentUser);
-        }
+        
+        // Update localStorage
+        localStorage.setItem('current_user', JSON.stringify(this.currentUser));
+        
+        // Update the auth service
+        this.authService['currentUserSubject'].next(this.currentUser);
+        
+        console.log('Profile saved successfully:', this.currentUser);
+      }
       },
       error: (error) => {
         console.error('Error saving profile:', error);

@@ -82,7 +82,7 @@ export class UserIdentificationService {
           return this.getRfidCards(user.id).pipe(
             map(cards => {
               profile.rfidCard = cards.find(c => c.userId === user.id) || undefined;
-              return profile;
+        return profile;
             })
           );
         }

@@ -68,8 +68,8 @@ export class RewardService {
     ).pipe(
       map(transaction => this.mapRewardTransactionResponse(transaction))
     );
-  }
-
+        }
+        
   getUserTransactions(userId: string): Observable<RewardTransaction[]> {
     return this.http.get<any>(`${environment.apiUrl}${environment.endpoints.rewardTransactions}/user/${userId}`).pipe(
       map((response: any) => {
@@ -112,20 +112,20 @@ export class RewardService {
   getUserPoints(userId: string): Observable<UserPoints> {
     return this.http.get<number>(`${environment.apiUrl}${environment.endpoints.users}/${userId}/points`).pipe(
       switchMap(totalPoints => {
-        return this.getUserTransactions(userId).pipe(
+    return this.getUserTransactions(userId).pipe(
           map(transactions => {
-            const redeemedPoints = transactions
-              .filter(t => t.transactionType === 'REDEEMED' && t.status === 'COMPLETED')
-              .reduce((sum, t) => sum + Math.abs(t.points), 0);
-            
-            const userPoints: UserPoints = {
-              userId: userId,
+        const redeemedPoints = transactions
+          .filter(t => t.transactionType === 'REDEEMED' && t.status === 'COMPLETED')
+          .reduce((sum, t) => sum + Math.abs(t.points), 0);
+        
+        const userPoints: UserPoints = {
+          userId: userId,
               totalPoints: totalPoints || 0,
               availablePoints: (totalPoints || 0) - redeemedPoints,
-              redeemedPoints: redeemedPoints,
-              lastUpdated: new Date().toISOString()
-            };
-            
+          redeemedPoints: redeemedPoints,
+          lastUpdated: new Date().toISOString()
+        };
+        
             return userPoints;
           })
         );
@@ -163,7 +163,7 @@ export class RewardService {
     // Map frontend fields to backend Reward model
     const updateData: any = {
       name: reward.name,
-      description: reward.description || '',
+          description: reward.description || '',
       pointsCost: reward.pointsCost,
       category: this.mapCategoryToBackend(reward.category), // Map frontend category to backend enum
       isActive: reward.isActive ?? true,
