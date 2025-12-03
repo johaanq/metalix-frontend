@@ -381,7 +381,8 @@ export class UserProfile implements OnInit, OnDestroy {
 
     this.isLinkingRfid = true;
 
-    this.userIdentificationService.linkRfidCard(this.currentUser.id, this.rfidCardNumber).subscribe({
+    // Usar issueRfidCard con el cardNumber proporcionado por el usuario
+    this.userIdentificationService.issueRfidCard(this.currentUser.id, this.rfidCardNumber).subscribe({
       next: (card) => {
         this.isLinkingRfid = false;
         this.hasRfidCard = true;
