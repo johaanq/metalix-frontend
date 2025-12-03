@@ -180,6 +180,15 @@ export class UserIdentificationService {
     );
   }
 
+  linkRfidCard(userId: string, cardNumber: string): Observable<RfidCard> {
+    return this.http.post<any>(
+      `${environment.apiUrl}${environment.endpoints.rfidCards}/link`,
+      { userId: parseInt(userId), cardNumber: cardNumber }
+    ).pipe(
+      map(c => this.mapRfidCardResponse(c))
+    );
+  }
+
   deactivateRfidCard(cardId: string): Observable<RfidCard> {
     return this.http.patch<any>(
       `${environment.apiUrl}${environment.endpoints.rfidCards}/${cardId}/block`,
