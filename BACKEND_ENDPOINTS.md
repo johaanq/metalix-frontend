@@ -574,7 +574,9 @@ Este documento detalla todos los endpoints del backend utilizados por el fronten
 ---
 
 ### POST `/api/v1/rfid-cards/assign`
-**Descripción**: Asignar una nueva tarjeta RFID a un usuario
+**Descripción**: Asignar una nueva tarjeta RFID a un usuario (solo administradores)
+
+**Permisos**: SYSTEM_ADMIN, MUNICIPALITY_ADMIN
 
 **Body**:
 ```json
@@ -587,6 +589,27 @@ Este documento detalla todos los endpoints del backend utilizados por el fronten
 **Respuesta**: Objeto RfidCard
 
 **Servicio**: `UserIdentificationService`
+
+---
+
+### POST `/api/v1/rfid-cards/link`
+**Descripción**: Vincular tarjeta RFID al perfil propio del usuario (para ciudadanos)
+
+**Permisos**: Todos los usuarios autenticados
+
+**Body**:
+```json
+{
+  "userId": "number",
+  "cardNumber": "string"
+}
+```
+
+**Respuesta**: Objeto RfidCard
+
+**Servicio**: `UserIdentificationService`
+
+**Nota**: Este endpoint permite que los ciudadanos vinculen su propia tarjeta RFID sin necesitar permisos de administrador.
 
 ---
 
@@ -739,9 +762,9 @@ Este documento detalla todos los endpoints del backend utilizados por el fronten
 | Recolecciones de Residuos | 3 |
 | Recompensas | 6 |
 | Transacciones de Recompensas | 2 |
-| Tarjetas RFID | 4 |
+| Tarjetas RFID | 5 |
 | Monitoreo | 10 |
-| **TOTAL** | **49** |
+| **TOTAL** | **50** |
 
 ### Por Método HTTP
 
