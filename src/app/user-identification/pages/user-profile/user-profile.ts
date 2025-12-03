@@ -84,6 +84,12 @@ export class UserProfile implements OnInit, OnDestroy {
   // Activity history - will be loaded from backend
   activityHistory: any[] = [];
 
+  // RFID Card data
+  rfidCardNumber: string = '';
+  hasRfidCard: boolean = false;
+  isLinkingRfid: boolean = false;
+  rfidCardData: any = null;
+
   constructor(
     private authService: AuthService,
     private userIdentificationService: UserIdentificationService,
@@ -168,6 +174,7 @@ export class UserProfile implements OnInit, OnDestroy {
       // Load additional data for citizens in parallel
       if (isCitizen && this.currentUser.id) {
         this.loadUserAdditionalData(this.currentUser.id);
+        this.loadRfidCard(this.currentUser.id);
       }
       
       console.log('Profile data loaded:', this.profileData);
@@ -344,5 +351,81 @@ export class UserProfile implements OnInit, OnDestroy {
     if (points > 0) return 'primary';
     if (points < 0) return 'warn';
     return 'accent';
+  }
+
+  private loadRfidCard(userId: string): void {
+    this.userIdentificationService.getRfidCards(userId).subscribe({
+      next: (cards) => {
+        if (cards && cards.length > 0) {
+          this.rfidCardData = cards[0];
+          this.hasRfidCard = true;
+          this.rfidCardNumber = this.rfidCardData.cardNumber;
+        } else {
+          this.hasRfidCard = false;
+          this.rfidCardData = null;
+        }
+      },
+      error: (error) => {
+        console.log('No RFID card found for user:', error);
+        this.hasRfidCard = false;
+        this.rfidCardData = null;
+      }
+    });
+  }
+
+  linkRfidCard(): void {
+    if (!this.rfidCardNumber || !this.currentUser?.id) {
+      alert('Por favor ingresa un número de tarjeta RFID válido.');
+      return;
+    }
+
+    this.isLinkingRfid = true;
+
+    this.userIdentificationService.linkRfidCard(this.currentUser.id, this.rfidCardNumber).subscribe({
+      next: (card) => {
+        this.isLinkingRfid = false;
+        this.hasRfidCard = true;
+        this.rfidCardData = card;
+        alert('Tarjeta RFID vinculada exitosamente!');
+      },
+      error: (error) => {
+        this.isLinkingRfid = false;
+        console.error('Error linking RFID card:', error);
+        const errorMessage = error.error?.message || 'Error al vincular la tarjeta RFID. Verifica que el número sea correcto y que la tarjeta no esté ya asignada.';
+        alert(errorMessage);
+      }
+    });
+  }
+
+  unlinkRfidCard(): void {
+    if (!confirm('¿Estás seguro de que deseas desvincular esta tarjeta RFID?')) {
+      return;
+    }
+
+    if (!this.rfidCardData?.id) {
+      alert('No hay tarjeta para desvincular.');
+      return;
+    }
+
+    this.isLinkingRfid = true;
+
+    this.userIdentificationService.deactivateRfidCard(this.rfidCardData.id).subscribe({
+      next: () => {
+        this.isLinkingRfid = false;
+        this.hasRfidCard = false;
+        this.rfidCardData = null;
+        this.rfidCardNumber = '';
+        alert('Tarjeta RFID desvinculada exitosamente!');
+      },
+      error: (error) => {
+        this.isLinkingRfid = false;
+        console.error('Error unlinking RFID card:', error);
+        alert('Error al desvincular la tarjeta RFID.');
+      }
+    });
+  }
+
+  isCitizen(): boolean {
+    return this.currentUser?.role === 'CITIZEN';
   }
 }

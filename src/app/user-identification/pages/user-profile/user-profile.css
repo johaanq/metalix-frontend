@@ -677,6 +677,220 @@
   margin-left: 16px;
 }
 
+/* RFID Card Styles */
+.rfid-card {
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.rfid-section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.rfid-description {
+  font-size: 16px;
+  color: var(--metalix-gray);
+  margin: 0;
+  padding: 16px;
+  background: rgba(29, 180, 198, 0.05);
+  border-radius: 12px;
+  border-left: 4px solid #1DB4C6;
+}
+
+/* RFID Card Linked */
+.rfid-linked {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.rfid-card-visual {
+  display: flex;
+  align-items: center;
+  padding: 24px;
+  background: linear-gradient(135deg, #1DB4C6 0%, #20c997 100%);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(29, 180, 198, 0.3);
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.rfid-card-visual::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  animation: float 15s ease-in-out infinite;
+}
+
+.rfid-icon {
+  font-size: 60px;
+  width: 60px;
+  height: 60px;
+  margin-right: 24px;
+  color: rgba(255, 255, 255, 0.9);
+  position: relative;
+  z-index: 1;
+}
+
+.rfid-card-info {
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+
+.rfid-card-info h3 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+}
+
+.card-number {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin: 0 0 12px 0;
+  font-family: 'Courier New', monospace;
+}
+
+.card-details {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.card-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.card-status.active {
+  background: rgba(32, 201, 151, 0.3);
+}
+
+.card-status mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.card-usage {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.card-issued,
+.card-last-used {
+  font-size: 13px;
+  opacity: 0.9;
+  margin: 4px 0 0 0;
+}
+
+.rfid-actions {
+  display: flex;
+  justify-content: center;
+}
+
+/* RFID Not Linked */
+.rfid-not-linked {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.rfid-empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  background: rgba(248, 250, 252, 0.6);
+  border-radius: 16px;
+  border: 2px dashed rgba(148, 163, 184, 0.3);
+}
+
+.empty-icon {
+  font-size: 80px;
+  width: 80px;
+  height: 80px;
+  color: #cbd5e1;
+  margin: 0 auto 16px;
+}
+
+.rfid-empty-state h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--metalix-dark-gray);
+  margin: 0 0 8px 0;
+}
+
+.rfid-empty-state p {
+  font-size: 16px;
+  color: var(--metalix-gray);
+  margin: 0;
+}
+
+.rfid-link-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 16px;
+}
+
+.rfid-link-form mat-form-field {
+  width: 100%;
+  max-width: 400px;
+}
+
+.rfid-help {
+  display: flex;
+  gap: 16px;
+  padding: 20px;
+  background: rgba(255, 243, 205, 0.3);
+  border-radius: 12px;
+  border-left: 4px solid #fbbf24;
+}
+
+.rfid-help mat-icon {
+  color: #f59e0b;
+  flex-shrink: 0;
+}
+
+.help-text strong {
+  display: block;
+  font-size: 16px;
+  color: var(--metalix-dark-gray);
+  margin-bottom: 4px;
+}
+
+.help-text p {
+  font-size: 14px;
+  color: var(--metalix-gray);
+  margin: 0;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .dashboard-sidenav {
@@ -711,6 +925,21 @@
   
   .toolbar-title {
     font-size: 18px;
+  }
+
+  .rfid-card-visual {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .rfid-icon {
+    margin-right: 0;
+    margin-bottom: 16px;
+  }
+
+  .card-details {
+    flex-direction: column;
+    gap: 8px;
   }
 }
 

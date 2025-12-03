@@ -247,6 +247,104 @@
             </div>
           </div>
         </mat-tab>
+
+        <!-- RFID Card Tab - Only for Citizens -->
+        <mat-tab label="RFID Card" *ngIf="isCitizen()">
+          <div class="tab-content">
+            <mat-card class="rfid-card">
+              <mat-card-header>
+                <mat-card-title>
+                  <mat-icon>credit_card</mat-icon>
+                  Tarjeta RFID
+                </mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="rfid-section">
+                  <p class="rfid-description">
+                    Vincula tu tarjeta RFID para registrar tus recolecciones de residuos de manera rápida y automática.
+                  </p>
+
+                  <!-- Card Linked -->
+                  <div *ngIf="hasRfidCard" class="rfid-linked">
+                    <div class="rfid-card-visual">
+                      <mat-icon class="rfid-icon">credit_card</mat-icon>
+                      <div class="rfid-card-info">
+                        <h3>Tarjeta Vinculada</h3>
+                        <p class="card-number">{{ rfidCardData?.cardNumber }}</p>
+                        <div class="card-details">
+                          <span class="card-status" [class.active]="rfidCardData?.isActive">
+                            <mat-icon>{{ rfidCardData?.isActive ? 'check_circle' : 'cancel' }}</mat-icon>
+                            {{ rfidCardData?.isActive ? 'Activa' : 'Inactiva' }}
+                          </span>
+                          <span class="card-usage">
+                            Usos: {{ rfidCardData?.usageCount || 0 }}
+                          </span>
+                        </div>
+                        <p class="card-issued" *ngIf="rfidCardData?.issuedAt">
+                          Emitida: {{ rfidCardData.issuedAt | date:'short' }}
+                        </p>
+                        <p class="card-last-used" *ngIf="rfidCardData?.lastUsed">
+                          Último uso: {{ rfidCardData.lastUsed | date:'short' }}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div class="rfid-actions">
+                      <button 
+                        mat-raised-button 
+                        color="warn" 
+                        (click)="unlinkRfidCard()"
+                        [disabled]="isLinkingRfid">
+                        <mat-icon>link_off</mat-icon>
+                        Desvincular Tarjeta
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- No Card Linked -->
+                  <div *ngIf="!hasRfidCard" class="rfid-not-linked">
+                    <div class="rfid-empty-state">
+                      <mat-icon class="empty-icon">credit_card_off</mat-icon>
+                      <h3>No tienes una tarjeta RFID vinculada</h3>
+                      <p>Ingresa el número de tu tarjeta RFID para vincularla a tu perfil.</p>
+                    </div>
+
+                    <div class="rfid-link-form">
+                      <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Número de Tarjeta RFID</mat-label>
+                        <input 
+                          matInput 
+                          [(ngModel)]="rfidCardNumber"
+                          placeholder="Ej: RFID123456"
+                          [disabled]="isLinkingRfid">
+                        <mat-icon matPrefix>credit_card</mat-icon>
+                        <mat-hint>Ingresa el número que aparece en tu tarjeta RFID</mat-hint>
+                      </mat-form-field>
+
+                      <button 
+                        mat-raised-button 
+                        color="primary" 
+                        (click)="linkRfidCard()"
+                        [disabled]="isLinkingRfid || !rfidCardNumber">
+                        <mat-spinner *ngIf="isLinkingRfid" diameter="20"></mat-spinner>
+                        <mat-icon *ngIf="!isLinkingRfid">link</mat-icon>
+                        {{ isLinkingRfid ? 'Vinculando...' : 'Vincular Tarjeta' }}
+                      </button>
+                    </div>
+
+                    <div class="rfid-help">
+                      <mat-icon>info</mat-icon>
+                      <div class="help-text">
+                        <strong>¿Cómo obtengo una tarjeta RFID?</strong>
+                        <p>Las tarjetas RFID son proporcionadas por tu municipalidad. Contacta con la oficina de reciclaje de tu municipio para solicitar una.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </mat-tab>
       </mat-tab-group>
     </div>
   </mat-sidenav-content>
